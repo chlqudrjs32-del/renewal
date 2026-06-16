@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge-fill text-primary"></i> TSC 킥복싱 관원 관리 시스템
+        </h2>
+        <p class="m-0 mt-2 fs-6">도장 관원들을 부서별(연령대) 카테고리로 분류하고 수강 상태를 실시간으로 조회합니다.</p>
+    </div>
+    <div>
+        <a href="/members/add" class="btn btn-premium-primary shadow-sm"><i class="bi bi-person-plus-fill"></i> 신규 관원 등록</a>
+    </div>
+</div>
+
+<div class="premium-card">
+    <div class="row g-3 flex-column">
+        <div class="col-12">
+            <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-funnel-fill text-primary me-1"></i> 수련 부서별 분류 필터</label>
+            <div class="btn-group w-100 shadow-sm" role="group">
+                <button type="button" onclick="filterDivision('all')" class="btn btn-primary fw-bold text-white div-btn" id="btn-all">전체 부서</button>
+                <button type="button" onclick="filterDivision('초등부')" class="btn btn-outline-secondary div-btn" id="btn-초등부">초등부</button>
+                <button type="button" onclick="filterDivision('중등부')" class="btn btn-outline-secondary div-btn" id="btn-중등부">중등부</button>
+                <button type="button" onclick="filterDivision('고등부')" class="btn btn-outline-secondary div-btn" id="btn-고등부">고등부</button>
+                <button type="button" onclick="filterDivision('성인부')" class="btn btn-outline-secondary div-btn" id="btn-성인부">성인부</button>
+            </div>
+        </div>
+
+        <div class="col-12 mt-2">
+            <form method="GET" action="/members" class="row g-3 align-items-center">
+                <div class="col-lg-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="관원 이름 또는 전화번호 검색" value="{{ search_query or '' }}">
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <select name="status" class="form-select bg-light">
+                        <option value="all" {% if current_status == 'all' %}selected{% endif %}>모든 수련 상태 (전체)</option>
+                        <option value="active" {% if current_status == 'active' %}selected{% endif %}>정상 수련 관원</option>
+                        <option value="suspended" {% if current_status == 'suspended' %}selected{% endif %}>수련 정지 관원</option>
+                        <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>기간 만료 관원</option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <button type="submit" class="btn btn-dark w-100 fw-bold"><i class="bi bi-search me-1"></i> 조건 검색</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="premium-card">
+    <div class="table-responsive">
+        <table class="table premium-table table-hover align-middle text-center">
+            <thead>
+                <tr class="text-start">
+                    <th>부서</th>
+                    <th>관원 이름 (성별)</th>
+                    <th>휴대폰 번호</th>
+                    <th>회원권 종류</th>
+                    <th>보유 만료일</th>
+                    <th>현재 상태</th>
+                    <th class="text-center">매니지먼트</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in members %}
+                <tr class="text-start member-row" data-memo="{{ m.memo or '' }}" data-division="">
+                    <td>
+                        <span class="badge div-badge fw-bold px-2.5 py-1.5 bg-secondary text-white">분석중</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold fs-5 text-dark">{{ m.name }}</span>
+                        <span class="text-muted small">({{ '남성' if m.gender == 'M' else '여성' }})</span>
+                    </td>
+                    <td class="text-secondary fw-medium">{{ m.phone }}</td>
+                    <td>
+                        <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2 fw-semibold">
+                            {{ m.membership_type }}개월권
+                        </span>
+                    </td>
+                    <td><span class="fw-semibold text-dark">{{ m.expiry_date }}</span></td>
+                    <td>
+                        {% if m.status == 'active' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">정상 수련</span>
+                        {% elif m.status == 'suspended' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">수련 정지</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">기간 만료</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="/members/{{ m.id }}" class="btn btn-sm btn-premium-outline py-1 px-3"><i class="bi bi-eye"></i> 상세 기록</a>
+                        <a href="/members/{{ m.id }}/edit" class="btn btn-sm btn-dark py-1 px-3 text-white"><i class="bi bi-pencil-square"></i> 정보 수정</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">등록된 관원이 없습니다.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // [해결 핵심] 화면이 열리자마자 메모를 파싱하여 배지를 붙이고, 버튼이 인식할 수 있도록 데이터를 주입합니다.
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll('.member-row');
+        rows.forEach(row => {
+            const memo = row.getAttribute('data-memo');
+            const badge = row.querySelector('.div-badge');
+            
+            if (memo.includes('[초등부]')) {
+                row.setAttribute('data-division', '초등부');
+                badge.textContent = '초등부';
+                badge.className = 'badge bg-info text-dark fw-bold px-2.5 py-1.5';
+            } else if (memo.includes('[중등부]')) {
+                row.setAttribute('data-division', '중등부');
+                badge.textContent = '중등부';
+                badge.className = 'badge bg-warning text-dark fw-bold px-2.5 py-1.5';
+            } else if (memo.includes('[고등부]')) {
+                row.setAttribute('data-division', '고등부');
+                badge.textContent = '고등부';
+                badge.className = 'badge bg-danger text-white fw-bold px-2.5 py-1.5';
+            } else {
+                // 메모에 명시적인 부서가 없거나 [성인부]인 경우 기본값 처리
+                row.setAttribute('data-division', '성인부');
+                badge.textContent = '성인부';
+                badge.className = 'badge bg-dark text-white fw-bold px-2.5 py-1.5';
+            }
+        });
+    });
+
+    // 부서 탭 버튼을 누르면 실시간으로 해당 관원들만 걸러서 보여주는 함수
+    function filterDivision(division) {
+        // 1. 모든 부서 버튼의 활성화 불빛(파란색)을 끄고 기본 회색 테두리로 초기화
+        document.querySelectorAll('.div-btn').forEach(btn => {
+            btn.className = 'btn btn-outline-secondary div-btn';
+        });
+        // 2. 현재 클릭한 부서 버튼에만 파란색 불빛 켜기
+        document.getElementById('btn-' + division).className = 'btn btn-primary fw-bold text-white div-btn';
+
+        // 3. 테이블 안의 모든 관원 행을 돌면서 필터링 처리
+        const rows = document.querySelectorAll('.member-row');
+        rows.forEach(row => {
+            const rowDiv = row.getAttribute('data-division');
+            
+            // 전체 부서를 선택했거나, 관원의 부서가 선택한 버튼 부서와 일치하면 노출, 아니면 숨김
+            if (division === 'all' || rowDiv === division) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

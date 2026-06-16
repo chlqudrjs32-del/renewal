@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+            <i class="bi bi-person-card-heading text-primary"></i> 관원 상세 프로필
+        </h2>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/members" class="btn btn-premium-outline"><i class="bi bi-arrow-left"></i> 목록으로</a>
+        <a href="/members/{{ member.id }}/edit" class="btn btn-dark text-white"><i class="bi bi-pencil-square"></i> 정보 수정</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="premium-card h-100">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="bi bi-person-fill fs-2"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold m-0 d-inline-block align-middle me-2">{{ member.name }}</h3>
+                    <span id="detail_badge" class="badge bg-secondary fw-bold px-2.5 py-1.5 align-middle">성인부</span>
+                    <p class="text-muted m-0 mt-1">등록 번호: #{{ member.id }}</p>
+                </div>
+            </div>
+
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">휴대폰 번호</span>
+                    <span class="fw-bold text-dark">{{ member.phone }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">학부모 연락처</span>
+                    <span class="fw-bold text-dark">{{ member.parent_phone or '-' }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">생년월일 / 성별</span>
+                    <span class="fw-bold text-dark">{{ member.birth_date }} ({{ '남성' if member.gender == 'M' else '여성' }})</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">보유 회원권 종류</span>
+                    <span class="badge bg-light text-primary border border-primary-subtle px-3 py-1.5 fw-bold">{{ member.membership_type }}개월권</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">회원권 종료(만료)일</span>
+                    <span class="fw-bold text-danger">{{ member.expiry_date }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">현재 수련 상태</span>
+                    <span>
+                        {% if member.status == 'active' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">정상 수련</span>
+                        {% elif member.status == 'suspended' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">수련 정지</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">기간 만료</span>
+                        {% endif %}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-7 mb-4">
+        <div class="premium-card h-100">
+            <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-sticky-fill text-warning me-1"></i> 관원 특이사항 / 종합 메모</h4>
+            <div class="p-4 rounded-4 bg-light border min-height-box" style="min-height: 200px;">
+                <p id="clean_memo" class="m-0 text-dark fs-5 style-pre" style="white-space: pre-wrap;" data-raw-memo="{{ member.memo or '' }}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 상세 화면 켤 때 메모에서 [부서명] 떼어내고 배지 색상 입히는 작업
+    document.addEventListener("DOMContentLoaded", function() {
+        const memoPara = document.getElementById('clean_memo');
+        const badge = document.getElementById('detail_badge');
+        let rawMemo = memoPara.getAttribute('data-raw-memo');
+        
+        if (rawMemo.includes('[초등부]')) {
+            badge.textContent = '초등부';
+            badge.className = 'badge bg-info text-dark fw-bold px-2.5 py-1.5 align-middle';
+            rawMemo = rawMemo.replace('[초등부] ', '').replace('[초등부]', '');
+        } else if (rawMemo.includes('[중등부]')) {
+            badge.textContent = '중등부';
+            badge.className = 'badge bg-warning text-dark fw-bold px-2.5 py-1.5 align-middle';
+            rawMemo = rawMemo.replace('[중등부] ', '').replace('[중등부]', '');
+        } else if (rawMemo.includes('[고등부]')) {
+            badge.textContent = '고등부';
+            badge.className = 'badge bg-danger text-white fw-bold px-2.5 py-1.5 align-middle';
+            rawMemo = rawMemo.replace('[고등부] ', '').replace('[고등부]', '');
+        } else {
+            badge.textContent = '성인부';
+            badge.className = 'badge bg-dark text-white fw-bold px-2.5 py-1.5 align-middle';
+            rawMemo = rawMemo.replace('[성인부] ', '').replace('[성인부]', '');
+        }
+        
+        // 머리표 글자가 제거된 깔끔한 메모 내용만 화면에 표시
+        memoPara.textContent = rawMemo.trim() || "등록된 특이사항이 없습니다.";
+    });
+</script>
+{% endblock %}

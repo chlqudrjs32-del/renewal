@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-person-plus-fill text-primary"></i> 신규 관원 등록
+    </h2>
+    <p class="m-0 mt-2 fs-6">새로운 관원의 기본 인적 사항과 수련 부서, 수강권 정보를 정확하게 입력해 주세요.</p>
+</div>
+
+<div class="premium-card" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST" action="/members/add">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-person-fill me-1"></i> 관원 이름</label>
+                <input type="text" name="name" class="form-control form-control-lg rounded-3 border-2" placeholder="홍길동" required style="font-size: 16px;">
+            </div>
+            
+            {% with prefix='phone', label='휴대폰 번호', middle='', last='', required=True, icon='bi-telephone-fill', input_style='font-size: 16px;' %}
+            {% include 'partials/phone_field.html' %}
+            {% endwith %}
+
+            {% with prefix='parent_phone', label='학부모 연락처', middle='', last='', required=False, icon='bi-telephone-forward-fill', input_style='font-size: 16px;' %}
+            {% include 'partials/phone_field.html' %}
+            {% endwith %}
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-event me-1"></i> 생년월일</label>
+                <input type="date" name="birth_date" class="form-control form-control-lg rounded-3 border-2" required style="font-size: 16px;">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-gender-ambiguous me-1"></i> 성별</label>
+                <div class="d-flex gap-3">
+                    <input type="radio" class="btn-check" name="gender" id="genderM" value="M" checked>
+                    <label class="btn btn-outline-dark w-50 py-2.5 fw-semibold" for="genderM"><i class="bi bi-gender-male me-1"></i> 남성</label>
+
+                    <input type="radio" class="btn-check" name="gender" id="genderF" value="F">
+                    <label class="btn btn-outline-dark w-50 py-2.5 fw-semibold" for="genderF"><i class="bi bi-gender-female me-1"></i> 여성</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-tags-fill text-primary me-1"></i> 수련 부서 분류</label>
+                <select name="division" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary" style="font-size: 16px;">
+                    <option value="초등부">초등부 (Kids)</option>
+                    <option value="중등부">중등부 (Junior)</option>
+                    <option value="고등부">고등부 (High)</option>
+                    <option value="성인부" selected>성인부 (Adult)</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-card-checklist me-1"></i> 회원권 종류 (기간)</label>
+                <select name="membership_type" class="form-select form-select-lg rounded-3 border-2" style="font-size: 16px;">
+                    <option value="1">1개월권</option>
+                    <option value="3" selected>3개월권</option>
+                    <option value="6">6개월권</option>
+                    <option value="12">12개월권</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-range me-1"></i> 회원권 시작일</label>
+                <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" required style="font-size: 16px;">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-info-circle me-1"></i> 초기 상태 설정</label>
+                <select name="status" class="form-select form-select-lg rounded-3 border-2" style="font-size: 16px;">
+                    <option value="active" selected>정상 이용 가능 (Active)</option>
+                    <option value="inactive">이용 정지 / 대기 (Inactive)</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-sticky me-1"></i> 특이사항 및 메모</label>
+                <textarea name="memo" class="form-control rounded-3 border-2" rows="3" placeholder="관원의 락커 번호, 심사 이력, 부상 주의사항 등을 메모하세요."></textarea>
+            </div>
+        </div>
+
+        <hr class="my-4 opacity-50">
+
+        <div class="d-flex justify-content-end gap-2">
+            <a href="/members" class="btn btn-premium-outline"><i class="bi bi-arrow-left"></i> 취소</a>
+            <button type="submit" class="btn btn-premium-primary"><i class="bi bi-check-lg"></i> 신규 관원 등록 완료</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
