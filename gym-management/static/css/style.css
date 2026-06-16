@@ -942,6 +942,15 @@ footer {
     .card-body {
         padding: 15px;
     }
+
+    .card {
+        pointer-events: auto !important;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .card:active {
+        transform: scale(0.98) !important;
+    }
 }
 
 /* 상태별 탭 */
