@@ -12,7 +12,7 @@
     <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-3 bg-light border" id="reportTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold py-3" id="expiring-tab" data-bs-toggle="tab" data-bs-target="#expiring-panel" type="button" role="tab">
-                <i class="bi bi-hourglass-split me-1 text-danger"></i> 7일 이내 만료 예정 회원
+                <i class="bi bi-hourglass-split me-1 text-danger"></i> 5일 이내 만료 예정 회원
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -54,7 +54,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">7일 이내에 회원권이 만료되는 회원이 없습니다.</td>
+                            <td colspan="4" class="text-center py-5 text-muted">5일 이내에 회원권이 만료되는 회원이 없습니다.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
