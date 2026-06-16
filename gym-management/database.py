@@ -243,29 +243,39 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
-                           membership_type, membership_start_date, expiry_date, memo, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (name, phone, parent_phone, birth_date, gender, today, membership_type, membership_start_date, expiry_date, memo, status))
-    conn.commit()
-    member_id = cursor.lastrowid
-    conn.close()
-    return member_id
+    try:
+        cursor.execute('''
+            INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
+                               membership_type, membership_start_date, expiry_date, memo, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, phone, parent_phone, birth_date, gender, today, membership_type, membership_start_date, expiry_date, memo, status))
+        conn.commit()
+        member_id = cursor.lastrowid
+        return member_id
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE members 
-        SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, membership_type = ?, 
-            membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ''', (name, phone, parent_phone, birth_date, gender, membership_type, membership_start_date, expiry_date, memo, status, member_id))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute('''
+            UPDATE members 
+            SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, membership_type = ?, 
+                membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (name, phone, parent_phone, birth_date, gender, membership_type, membership_start_date, expiry_date, memo, status, member_id))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 def delete_member(member_id):
     conn = get_db_connection()
