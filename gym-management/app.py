@@ -173,7 +173,10 @@ def edit_member(member_id):
             if not membership_start_date:
                 membership_start_date = datetime.now().strftime('%Y-%m-%d')
         
-        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone)
+        suspension_start_date = request.form.get('suspension_start_date')
+        suspension_end_date = request.form.get('suspension_end_date')
+        
+        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, suspension_start_date, suspension_end_date)
         return redirect(url_for('member_detail', member_id=member_id))
     
     phone_middle, phone_last = split_phone(member['phone'])

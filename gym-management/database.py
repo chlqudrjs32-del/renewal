@@ -59,6 +59,10 @@ def init_database():
     member_columns = [row[1] for row in cursor.fetchall()]
     if 'parent_phone' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN parent_phone TEXT')
+    if 'suspension_start_date' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN suspension_start_date TEXT')
+    if 'suspension_end_date' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN suspension_end_date TEXT')
 
     conn.commit()
     conn.close()
@@ -258,7 +262,7 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     finally:
         conn.close()
 
-def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None):
+def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, suspension_start_date=None, suspension_end_date=None):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
     conn = get_db_connection()
@@ -267,9 +271,10 @@ def update_member(member_id, name, phone, birth_date, gender, membership_type, m
         cursor.execute('''
             UPDATE members 
             SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, membership_type = ?, 
-                membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP,
+                suspension_start_date = ?, suspension_end_date = ?
             WHERE id = ?
-        ''', (name, phone, parent_phone, birth_date, gender, membership_type, membership_start_date, expiry_date, memo, status, member_id))
+        ''', (name, phone, parent_phone, birth_date, gender, membership_type, membership_start_date, expiry_date, memo, status, suspension_start_date, suspension_end_date, member_id))
         conn.commit()
     except Exception as e:
         conn.rollback()
