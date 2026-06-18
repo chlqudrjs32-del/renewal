@@ -84,20 +84,26 @@ def get_calendar_data(year, month, exclude_weekend=False):
 
 @app.route('/')
 def index():
+    branch = request.args.get('branch', 'all')
+    branch_filter = branch if branch in BRANCHES else None
     update_expired_members()
     stats = {
-        'total_members': get_member_count(),
-        'today_attendance': get_today_attendance_count(),
-        'absent_3days': get_absent_members_count(3),
-        'absent_5days': get_absent_members_count(5),
-        'absent_7days': get_absent_members_count(7),
-        'expiring_soon': get_overdue_members_count()  # 5일 기준 자동 집계
+        'total_members': get_member_count(branch_filter),
+        'today_attendance': get_today_attendance_count(branch_filter),
+        'absent_3days': get_absent_members_count(3, branch_filter),
+        'absent_5days': get_absent_members_count(5, branch_filter),
+        'absent_7days': get_absent_members_count(7, branch_filter),
+        'expiring_soon': get_overdue_members_count(branch=branch_filter)  # 5일 기준 자동 집계
     }
     
     # 미출석 명단 내역 데이터 확보 완료!
-    absent_members = get_absent_members(3)
+    absent_members = get_absent_members(3, branch_filter)
     
-    return render_template('index.html', stats=stats, absent_members=absent_members)
+    return render_template('index.html',
+                           stats=stats,
+                           absent_members=absent_members,
+                           current_branch=branch_filter or 'all',
+                           branches=BRANCHES)
 
 @app.route('/members')
 def members():

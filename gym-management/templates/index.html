@@ -16,15 +16,23 @@
     </div>
 </div>
 
+<div class="premium-card">
+    <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 지점별 현황 보기</label>
+    <div class="btn-group w-100 shadow-sm" role="group">
+        <a href="{{ url_for('index', branch='all') }}" class="btn {% if current_branch == 'all' %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">전체 지점</a>
+        {% for branch in branches %}
+        <a href="{{ url_for('index', branch=branch) }}" class="btn {% if current_branch == branch %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">{{ branch }}</a>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden"
-             onclick="location.href='/members';"
-             ontouchstart="location.href='/members';"
+             onclick="location.href='{{ url_for('members', branch=current_branch) }}';"
              style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; cursor: pointer; transition: transform 0.2s;"
              onmouseover="this.style.transform='scale(1.02)';"
-             onmouseout="this.style.transform='scale(1)';"
-             title="클릭하여 전체 관원 목록 보기">
+             onmouseout="this.style.transform='scale(1)';">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="fs-6 fw-medium opacity-75">전체 활성 관원</span>
@@ -39,7 +47,7 @@
     
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card h-100 border-0 shadow-sm rounded-4" 
-             onclick="location.href='/attendance/today';" 
+             onclick="location.href='{{ url_for('attendance', branch=current_branch) }}';" 
              style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; cursor: pointer; transition: transform 0.2s;"
              onmouseover="this.style.transform='scale(1.02)';" 
              onmouseout="this.style.transform='scale(1)';"
@@ -58,12 +66,10 @@
 
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card h-100 border-0 shadow-sm rounded-4"
-             onclick="location.href='/reports?tab=absent3';"
-             ontouchstart="location.href='/reports?tab=absent3';"
+             onclick="location.href='{{ url_for('members', branch=current_branch) }}';"
              style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; cursor: pointer; transition: transform 0.2s;"
              onmouseover="this.style.transform='scale(1.02)';"
-             onmouseout="this.style.transform='scale(1)';"
-             title="클릭하여 장기 미출석 관원 명단 보기">
+             onmouseout="this.style.transform='scale(1)';">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="fs-6 fw-medium opacity-75">장기 미출석 (3일+)</span>
@@ -103,9 +109,10 @@
                 <i class="bi bi-person-x-fill text-warning"></i> 집중 케어 대상 관원 (장기 미출석)
             </h4>
             <div class="table-responsive">
-                <table class="table premium-table table-hover align-middle" style="min-width: 600px;">
+                <table class="table premium-table table-hover align-middle">
                     <thead>
                         <tr>
+                            <th>지점</th>
                             <th>이름</th>
                             <th>연락처</th>
                             <th>마지막 출석일</th>
@@ -115,6 +122,7 @@
                         {% if absent_members %}
                             {% for member in absent_members %}
                             <tr>
+                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ member.branch or '태평동' }}</span></td>
                                 <td class="fw-bold"><a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a></td>
                                 <td class="text-secondary">{{ member.phone }}</td>
                                 <td><span class="badge bg-light text-danger p-2 border border-danger-subtle">{{ member.last_attendance if member.last_attendance else '기록 없음' }}</span></td>
@@ -122,7 +130,7 @@
                             {% endfor %}
                         {% else %}
                         <tr>
-                            <td colspan="3" class="text-center py-4 text-muted">안심하세요! 장기 미출석 관원이 없습니다.</td>
+                            <td colspan="4" class="text-center py-4 text-muted">안심하세요! 장기 미출석 관원이 없습니다.</td>
                         </tr>
                         {% endif %}
                     </tbody>

@@ -84,59 +84,80 @@ def update_expired_members():
     conn.commit()
     conn.close()
 
-def get_member_count():
+def get_member_count(branch=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active'")
+    if branch in ['태평동', '복수동']:
+        cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active' AND branch = ?", (branch,))
+    else:
+        cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active'")
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
 
-def get_today_attendance_count():
+def get_today_attendance_count(branch=None):
     today = datetime.now().strftime('%Y-%m-%d')
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) as count FROM attendance WHERE attendance_date = ?', (today,))
+    if branch in ['태평동', '복수동']:
+        cursor.execute('''
+            SELECT COUNT(*) as count
+            FROM attendance a
+            JOIN members m ON m.id = a.member_id
+            WHERE a.attendance_date = ? AND m.branch = ?
+        ''', (today, branch))
+    else:
+        cursor.execute('SELECT COUNT(*) as count FROM attendance WHERE attendance_date = ?', (today,))
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
 
 # ★ 수정: 외부에서 일수 조절이 가능하게 확장하고 기본값을 5일로 변경 (TypeError 완벽 방지)
-def get_overdue_members_count(days=5):
+def get_overdue_members_count(days=5, branch=None):
     today = datetime.now()
     future_date = (today + timedelta(days=days)).strftime('%Y-%m-%d')
     today_str = today.strftime('%Y-%m-%d')
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         SELECT COUNT(*) as count FROM members 
         WHERE expiry_date BETWEEN ? AND ? AND status = 'active'
-    ''', (today_str, future_date))
+    '''
+    params = [today_str, future_date]
+    if branch in ['태평동', '복수동']:
+        query += ' AND branch = ?'
+        params.append(branch)
+    cursor.execute(query, params)
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
 
-def get_absent_members_count(days):
+def get_absent_members_count(days, branch=None):
     target_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         SELECT COUNT(*) as count FROM members m
         WHERE m.status = 'active' AND m.id NOT IN (
             SELECT DISTINCT member_id FROM attendance 
             WHERE attendance_date > ?
         )
-    ''', (target_date,))
+    '''
+    params = [target_date]
+    if branch in ['태평동', '복수동']:
+        query += ' AND m.branch = ?'
+        params.append(branch)
+    cursor.execute(query, params)
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
 
-def get_absent_members(days):
+def get_absent_members(days, branch=None):
     target_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         SELECT m.*, 
                (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
         FROM members m
@@ -144,25 +165,39 @@ def get_absent_members(days):
             SELECT DISTINCT member_id FROM attendance 
             WHERE attendance_date > ?
         )
+    '''
+    params = [target_date]
+    if branch in ['태평동', '복수동']:
+        query += ' AND m.branch = ?'
+        params.append(branch)
+    query += '''
         ORDER BY last_attendance ASC
-    ''', (target_date,))
+    '''
+    cursor.execute(query, params)
     result = cursor.fetchall()
     conn.close()
     return result
 
 # ★ 수정: 외부에서 일수 조절이 가능하게 확장하고 기본값을 5일로 변경 (보고서 연동 최적화)
-def get_expiring_members(days=5):
+def get_expiring_members(days=5, branch=None):
     today = datetime.now()
     future_date = (today + timedelta(days=days)).strftime('%Y-%m-%d')
     today_str = today.strftime('%Y-%m-%d')
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         SELECT * FROM members 
         WHERE expiry_date BETWEEN ? AND ? AND status = 'active'
+    '''
+    params = [today_str, future_date]
+    if branch in ['태평동', '복수동']:
+        query += ' AND branch = ?'
+        params.append(branch)
+    query += '''
         ORDER BY expiry_date ASC
-    ''', (today_str, future_date))
+    '''
+    cursor.execute(query, params)
     result = cursor.fetchall()
     conn.close()
     return result
