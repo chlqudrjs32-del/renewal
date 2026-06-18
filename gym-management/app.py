@@ -9,7 +9,7 @@ from database import (
     get_member_attendance_by_month, get_all_attendance_by_month, get_day_attendance_members,
     get_attendance_map_for_range, toggle_attendance, clear_today_attendance, toggle_attendance_by_date,
     get_all_schedules, get_schedules_by_month, get_schedules_by_date, get_schedule_by_id,
-    add_schedule, update_schedule, delete_schedule
+    add_schedule, update_schedule, delete_schedule, get_database_status
 )
 from config import Config
 
@@ -54,6 +54,14 @@ BRANCHES = ['태평동', '복수동']
 
 # 초기화
 init_database()
+
+@app.route('/health/db')
+def database_health():
+    try:
+        status = get_database_status()
+        return jsonify({'success': True, **status})
+    except Exception as error:
+        return jsonify({'success': False, 'error': str(error)}), 500
 
 def get_calendar_data(year, month, exclude_weekend=False):
     """달력 데이터를 생성하되, exclude_weekend가 True이면 주말 열을 제외"""

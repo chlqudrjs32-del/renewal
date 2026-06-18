@@ -124,6 +124,18 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_database_status():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) as count FROM members')
+    result = cursor.fetchone()
+    conn.close()
+    return {
+        'database': 'postgres' if USE_POSTGRES else 'sqlite',
+        'database_url_configured': USE_POSTGRES,
+        'members_count': result['count'] if result else 0
+    }
+
 def update_expired_members():
     """만료일이 지난 회원을 자동으로 'inactive' 상태 전환"""
     today = datetime.now().strftime('%Y-%m-%d')
