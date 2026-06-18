@@ -1,16 +1,58 @@
 import sqlite3
+import os
 from datetime import datetime, timedelta
 from config import DATABASE_PATH
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+USE_POSTGRES = bool(DATABASE_URL)
+
+if USE_POSTGRES:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+
+def _convert_placeholders(query):
+    return query.replace('?', '%s') if USE_POSTGRES else query
+
+class PostgresCursor:
+    def __init__(self, cursor):
+        self.cursor = cursor
+        self.lastrowid = None
+        self.rowcount = -1
+
+    def execute(self, query, params=None):
+        self.cursor.execute(_convert_placeholders(query), params or ())
+        self.rowcount = self.cursor.rowcount
+        return self
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+class PostgresConnection:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def cursor(self):
+        return PostgresCursor(self.conn.cursor(cursor_factory=RealDictCursor))
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
 def init_database():
-    """SQLite 데이터베이스 초기화 및 테이블 생성"""
-    conn = sqlite3.connect(DATABASE_PATH)
+    """데이터베이스 초기화 및 테이블 생성"""
+    conn = get_db_connection()
     cursor = conn.cursor()
+    id_column = 'SERIAL PRIMARY KEY' if USE_POSTGRES else 'INTEGER PRIMARY KEY AUTOINCREMENT'
     
     # 회원 테이블
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS members (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_column},
             name TEXT NOT NULL,
             phone TEXT,
             parent_phone TEXT,
@@ -29,9 +71,9 @@ def init_database():
     ''')
     
     # 출석 테이블
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_column},
             member_id INTEGER NOT NULL,
             attendance_date TEXT NOT NULL,
             check_in_time TEXT,
@@ -42,9 +84,9 @@ def init_database():
     ''')
     
     # 스케줄 테이블
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS schedule (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_column},
             title TEXT NOT NULL,
             description TEXT,
             schedule_date TEXT NOT NULL,
@@ -56,8 +98,17 @@ def init_database():
         )
     ''')
     
-    cursor.execute("PRAGMA table_info(members)")
-    member_columns = [row[1] for row in cursor.fetchall()]
+    if USE_POSTGRES:
+        cursor.execute('''
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'members'
+        ''')
+        member_columns = [row['column_name'] for row in cursor.fetchall()]
+    else:
+        cursor.execute("PRAGMA table_info(members)")
+        member_columns = [row[1] for row in cursor.fetchall()]
+
     if 'parent_phone' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN parent_phone TEXT')
     if 'branch' not in member_columns:
@@ -67,6 +118,8 @@ def init_database():
     conn.close()
 
 def get_db_connection():
+    if USE_POSTGRES:
+        return PostgresConnection(psycopg2.connect(DATABASE_URL, sslmode='require'))
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -309,13 +362,16 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
                            branch, membership_type, membership_start_date, expiry_date, memo, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (name, phone, parent_phone, birth_date, gender, today, branch, membership_type, membership_start_date, expiry_date, memo, status))
+    '''
+    if USE_POSTGRES:
+        query += ' RETURNING id'
+    cursor.execute(query, (name, phone, parent_phone, birth_date, gender, today, branch, membership_type, membership_start_date, expiry_date, memo, status))
+    member_id = cursor.fetchone()['id'] if USE_POSTGRES else cursor.lastrowid
     conn.commit()
-    member_id = cursor.lastrowid
     conn.close()
     return member_id
 
@@ -493,12 +549,15 @@ def get_schedule_by_id(schedule_id):
 def add_schedule(title, description, schedule_date, start_time, end_time, category):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    query = '''
         INSERT INTO schedule (title, description, schedule_date, start_time, end_time, category)
         VALUES (?, ?, ?, ?, ?, ?)
-    ''', (title, description, schedule_date, start_time, end_time, category))
+    '''
+    if USE_POSTGRES:
+        query += ' RETURNING id'
+    cursor.execute(query, (title, description, schedule_date, start_time, end_time, category))
+    schedule_id = cursor.fetchone()['id'] if USE_POSTGRES else cursor.lastrowid
     conn.commit()
-    schedule_id = cursor.lastrowid
     conn.close()
     return schedule_id
 
