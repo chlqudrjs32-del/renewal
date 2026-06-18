@@ -16,6 +16,16 @@
 <div class="premium-card">
     <div class="row g-3 flex-column">
         <div class="col-12">
+            <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 지점별 관원 보기</label>
+            <div class="btn-group w-100 shadow-sm" role="group">
+                <a href="{{ url_for('members', branch='all', status=current_status, search=search_query) }}" class="btn {% if current_branch == 'all' %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">전체 지점</a>
+                {% for branch in branches %}
+                <a href="{{ url_for('members', branch=branch, status=current_status, search=search_query) }}" class="btn {% if current_branch == branch %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">{{ branch }}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12">
             <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-funnel-fill text-primary me-1"></i> 수련 부서별 분류 필터</label>
             <div class="btn-group w-100 shadow-sm" role="group">
                 <button type="button" onclick="filterDivision('all')" class="btn btn-primary fw-bold text-white div-btn" id="btn-all">전체 부서</button>
@@ -28,6 +38,7 @@
 
         <div class="col-12 mt-2">
             <form method="GET" action="/members" class="row g-3 align-items-center">
+                <input type="hidden" name="branch" value="{{ current_branch }}">
                 <div class="col-lg-6">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -55,6 +66,7 @@
         <table class="table premium-table table-hover align-middle text-center">
             <thead>
                 <tr class="text-start">
+                    <th>지점</th>
                     <th>부서</th>
                     <th>관원 이름 (성별)</th>
                     <th>휴대폰 번호</th>
@@ -67,6 +79,9 @@
             <tbody>
                 {% for m in members %}
                 <tr class="text-start member-row" data-memo="{{ m.memo or '' }}" data-division="">
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1.5">{{ m.branch or '태평동' }}</span>
+                    </td>
                     <td>
                         <span class="badge div-badge fw-bold px-2.5 py-1.5 bg-secondary text-white">분석중</span>
                     </td>
@@ -97,7 +112,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">등록된 관원이 없습니다.</td>
+                    <td colspan="8" class="text-center py-5 text-muted">등록된 관원이 없습니다.</td>
                 </tr>
                 {% endfor %}
             </tbody>

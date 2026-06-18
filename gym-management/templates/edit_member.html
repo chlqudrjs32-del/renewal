@@ -41,6 +41,15 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 소속 지점</label>
+                <select name="branch" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary">
+                    {% for branch in ['태평동', '복수동'] %}
+                    <option value="{{ branch }}" {% if (member.branch or '태평동') == branch %}selected{% endif %}>{{ branch }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-tags-fill text-primary me-1"></i> 수련 부서 분류 수정</label>
                 <select id="fake_division" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary">
                     <option value="초등부">초등부 (Kids)</option>
@@ -67,21 +76,11 @@
 
             <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2">수련 상태 설정</label>
-                <select name="status" id="status_select" class="form-select form-select-lg rounded-3 border-2" onchange="toggleSuspensionFields()">
+                <select name="status" class="form-select form-select-lg rounded-3 border-2">
                     <option value="active" {% if member.status == 'active' %}selected{% endif %}>정상 수련 (Active)</option>
                     <option value="suspended" {% if member.status == 'suspended' %}selected{% endif %}>수련 정지 (Suspended)</option>
                     <option value="inactive" {% if member.status == 'inactive' %}selected{% endif %}>기간 만료 (Inactive)</option>
                 </select>
-            </div>
-
-            <div class="col-md-6" id="suspension_start_field" style="display: none;">
-                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-x text-warning me-1"></i> 일시정지 시작일</label>
-                <input type="date" name="suspension_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_start_date or '' }}">
-            </div>
-
-            <div class="col-md-6" id="suspension_end_field" style="display: none;">
-                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-check text-success me-1"></i> 일시정지 종료일</label>
-                <input type="date" name="suspension_end_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_end_date or '' }}">
             </div>
 
             <div class="col-12">
@@ -104,7 +103,6 @@
     document.addEventListener("DOMContentLoaded", function() {
         const memoArea = document.getElementById('real_memo');
         const divSelect = document.getElementById('fake_division');
-        const statusSelect = document.getElementById('status_select');
         let rawMemo = memoArea.getAttribute('data-raw-memo');
         
         let detectedDivision = "성인부"; // 기본값
@@ -118,9 +116,6 @@
         // 선택창에 반영하고 순수 메모 글자만 메모 박스에 노출
         divSelect.value = detectedDivision;
         memoArea.value = rawMemo.trim();
-        
-        // 일시정지 필드 초기 상태 설정
-        toggleSuspensionFields();
     });
 
     // 수정 완료 버튼을 누를 때 선택된 부서를 메모장 맨 앞에 다시 붙여서 서버로 전송
@@ -133,21 +128,6 @@
         
         // [부서] 형태로 재조립하여 덮어쓰기
         memoArea.value = `[${selectedDivision}] ${pureMemo}`.trim();
-    }
-
-    // 수련 상태에 따라 일시정지 기간 필드 표시/숨김
-    function toggleSuspensionFields() {
-        const statusSelect = document.getElementById('status_select');
-        const startField = document.getElementById('suspension_start_field');
-        const endField = document.getElementById('suspension_end_field');
-        
-        if (statusSelect.value === 'suspended') {
-            startField.style.display = 'block';
-            endField.style.display = 'block';
-        } else {
-            startField.style.display = 'none';
-            endField.style.display = 'none';
-        }
     }
 </script>
 {% endblock %}

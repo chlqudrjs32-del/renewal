@@ -16,6 +16,7 @@ def init_database():
             parent_phone TEXT,
             birth_date TEXT,
             gender TEXT,
+            branch TEXT DEFAULT '태평동',
             registration_date TEXT NOT NULL,
             membership_type INTEGER NOT NULL,
             membership_start_date TEXT,
@@ -59,10 +60,8 @@ def init_database():
     member_columns = [row[1] for row in cursor.fetchall()]
     if 'parent_phone' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN parent_phone TEXT')
-    if 'suspension_start_date' not in member_columns:
-        cursor.execute('ALTER TABLE members ADD COLUMN suspension_start_date TEXT')
-    if 'suspension_end_date' not in member_columns:
-        cursor.execute('ALTER TABLE members ADD COLUMN suspension_end_date TEXT')
+    if 'branch' not in member_columns:
+        cursor.execute("ALTER TABLE members ADD COLUMN branch TEXT DEFAULT '태평동'")
 
     conn.commit()
     conn.close()
@@ -181,48 +180,76 @@ def get_member_by_id(member_id):
     conn.close()
     return result
 
-def get_all_members(search_query=None):
+def get_all_members(search_query=None, branch=None):
     conn = get_db_connection()
     cursor = conn.cursor()
+    branch_filter = branch if branch in ['태평동', '복수동'] else None
     if search_query:
-        cursor.execute('''
+        query = '''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
             FROM members m
-            WHERE m.name LIKE ? OR m.phone LIKE ? OR m.parent_phone LIKE ?
+            WHERE (m.name LIKE ? OR m.phone LIKE ? OR m.parent_phone LIKE ?)
+        '''
+        params = [f'%{search_query}%', f'%{search_query}%', f'%{search_query}%']
+        if branch_filter:
+            query += ' AND m.branch = ?'
+            params.append(branch_filter)
+        query += '''
             ORDER BY m.registration_date DESC
-        ''', (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+        '''
+        cursor.execute(query, params)
     else:
-        cursor.execute('''
+        query = '''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
-            FROM members m ORDER BY m.registration_date DESC
-        ''')
+            FROM members m
+        '''
+        params = []
+        if branch_filter:
+            query += ' WHERE m.branch = ?'
+            params.append(branch_filter)
+        query += ' ORDER BY m.registration_date DESC'
+        cursor.execute(query, params)
     result = cursor.fetchall()
     conn.close()
     return result
 
-def get_members_by_status(status, search_query=None):
+def get_members_by_status(status, search_query=None, branch=None):
     conn = get_db_connection()
     cursor = conn.cursor()
+    branch_filter = branch if branch in ['태평동', '복수동'] else None
     if search_query:
-        cursor.execute('''
+        query = '''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
             FROM members m
             WHERE m.status = ? AND (m.name LIKE ? OR m.phone LIKE ? OR m.parent_phone LIKE ?)
+        '''
+        params = [status, f'%{search_query}%', f'%{search_query}%', f'%{search_query}%']
+        if branch_filter:
+            query += ' AND m.branch = ?'
+            params.append(branch_filter)
+        query += '''
             ORDER BY m.registration_date DESC
-        ''', (status, f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+        '''
+        cursor.execute(query, params)
     else:
-        cursor.execute('''
+        query = '''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
-            FROM members m WHERE m.status = ? ORDER BY m.registration_date DESC
-        ''', (status,))
+            FROM members m WHERE m.status = ?
+        '''
+        params = [status]
+        if branch_filter:
+            query += ' AND m.branch = ?'
+            params.append(branch_filter)
+        query += ' ORDER BY m.registration_date DESC'
+        cursor.execute(query, params)
     result = cursor.fetchall()
     conn.close()
     return result
@@ -238,7 +265,7 @@ def calculate_expiry_date(start_date_str, membership_type):
     else:
         return (start_datetime + timedelta(days=365)).strftime('%Y-%m-%d')
 
-def add_member(name, phone, birth_date, gender, membership_type, memo, status='active', membership_start_date=None, parent_phone=None):
+def add_member(name, phone, birth_date, gender, membership_type, memo, status='active', membership_start_date=None, parent_phone=None, branch='태평동'):
     today = datetime.now().strftime('%Y-%m-%d')
     if not membership_start_date:
         membership_start_date = today
@@ -247,40 +274,29 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
-                               membership_type, membership_start_date, expiry_date, memo, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (name, phone, parent_phone, birth_date, gender, today, membership_type, membership_start_date, expiry_date, memo, status))
-        conn.commit()
-        member_id = cursor.lastrowid
-        return member_id
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
+    cursor.execute('''
+        INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
+                           branch, membership_type, membership_start_date, expiry_date, memo, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (name, phone, parent_phone, birth_date, gender, today, branch, membership_type, membership_start_date, expiry_date, memo, status))
+    conn.commit()
+    member_id = cursor.lastrowid
+    conn.close()
+    return member_id
 
-def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, suspension_start_date=None, suspension_end_date=None):
+def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동'):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            UPDATE members 
-            SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, membership_type = ?, 
-                membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP,
-                suspension_start_date = ?, suspension_end_date = ?
-            WHERE id = ?
-        ''', (name, phone, parent_phone, birth_date, gender, membership_type, membership_start_date, expiry_date, memo, status, suspension_start_date, suspension_end_date, member_id))
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
+    cursor.execute('''
+        UPDATE members 
+        SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, branch = ?, membership_type = ?, 
+            membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (name, phone, parent_phone, birth_date, gender, branch, membership_type, membership_start_date, expiry_date, memo, status, member_id))
+    conn.commit()
+    conn.close()
 
 def delete_member(member_id):
     conn = get_db_connection()

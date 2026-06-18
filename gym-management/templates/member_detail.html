@@ -41,6 +41,10 @@
                     <span class="fw-bold text-dark">{{ member.birth_date }} ({{ '남성' if member.gender == 'M' else '여성' }})</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">소속 지점</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 fw-bold">{{ member.branch or '태평동' }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
                     <span class="text-secondary fw-medium">보유 회원권 종류</span>
                     <span class="badge bg-light text-primary border border-primary-subtle px-3 py-1.5 fw-bold">{{ member.membership_type }}개월권</span>
                 </li>

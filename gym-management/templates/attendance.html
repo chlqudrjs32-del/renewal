@@ -23,11 +23,22 @@
     </div>
 </div>
 
+<div class="premium-card">
+    <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 지점별 출석부 보기</label>
+    <div class="btn-group w-100 shadow-sm" role="group">
+        <a href="{{ url_for('attendance', branch='all') }}" class="btn {% if current_branch == 'all' %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">전체 지점</a>
+        {% for branch in branches %}
+        <a href="{{ url_for('attendance', branch=branch) }}" class="btn {% if current_branch == branch %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">{{ branch }}</a>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle m-0 text-center">
             <thead class="table-light">
                 <tr>
+                    <th style="width: 90px;">지점</th>
                     <th style="width: 120px;" class="text-start ps-4">이름</th>
                     <th style="width: 140px;">연락처</th>
                     <th style="width: 100px;">미출석 일수</th>
@@ -43,6 +54,9 @@
                 {% if members %}
                     {% for member in members %}
                     <tr>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">{{ member.branch or '태평동' }}</span>
+                        </td>
                         <td class="text-start ps-4 fw-bold">
                             <a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a>
                         </td>
@@ -75,7 +89,7 @@
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="{{ 3 + len(day_labels) }}" class="text-center py-5 text-muted">
+                    <td colspan="{{ 4 + len(day_labels) }}" class="text-center py-5 text-muted">
                         등록된 활성 관원이 없습니다. 관원 관리 메뉴에서 관원을 먼저 추가해 주세요.
                     </td>
                 </tr>

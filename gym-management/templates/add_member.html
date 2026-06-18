@@ -41,6 +41,15 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 소속 지점</label>
+                <select name="branch" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary" style="font-size: 16px;">
+                    {% for branch in branches %}
+                    <option value="{{ branch }}" {% if branch == '태평동' %}selected{% endif %}>{{ branch }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-tags-fill text-primary me-1"></i> 수련 부서 분류</label>
                 <select name="division" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary" style="font-size: 16px;">
                     <option value="초등부">초등부 (Kids)</option>

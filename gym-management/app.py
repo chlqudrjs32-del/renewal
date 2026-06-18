@@ -50,6 +50,8 @@ def get_phone_from_form(form, prefix, required=False):
 app = Flask(__name__)
 app.config.from_object(Config)
 
+BRANCHES = ['태평동', '복수동']
+
 # 초기화
 init_database()
 
@@ -101,11 +103,13 @@ def index():
 def members():
     status = request.args.get('status', 'active')
     search_query = request.args.get('search', '').strip() or None
+    branch = request.args.get('branch', 'all')
+    branch_filter = branch if branch in BRANCHES else None
     
     if status in ['active', 'suspended', 'inactive']:
-        all_members = get_members_by_status(status, search_query)
+        all_members = get_members_by_status(status, search_query, branch_filter)
     else:
-        all_members = get_all_members(search_query)
+        all_members = get_all_members(search_query, branch_filter)
     
     today_date = datetime.now().strftime('%Y-%m-%d')
     return render_template('members.html', 
@@ -113,7 +117,9 @@ def members():
                            member_count=len(all_members),
                            today_date=today_date,
                            current_status=status,
-                           search_query=search_query or '')
+                           search_query=search_query or '',
+                           current_branch=branch_filter or 'all',
+                           branches=BRANCHES)
 
 @app.route('/members/add', methods=['GET', 'POST'])
 def add_member_page():
@@ -123,15 +129,16 @@ def add_member_page():
         parent_phone = get_phone_from_form(request.form, 'parent_phone')
         birth_date = request.form.get('birth_date')
         gender = request.form.get('gender')
+        branch = request.form.get('branch') if request.form.get('branch') in BRANCHES else '태평동'
         membership_type = int(request.form.get('membership_type', 1))
         membership_start_date = request.form.get('membership_start_date')
         memo = request.form.get('memo')
         status = request.form.get('status', 'active')
         
-        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone)
-        return redirect(url_for('members'))
+        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch)
+        return redirect(url_for('members', branch=branch))
     
-    return render_template('add_member.html')
+    return render_template('add_member.html', branches=BRANCHES)
 
 @app.route('/members/<int:member_id>')
 def member_detail(member_id):
@@ -158,6 +165,7 @@ def edit_member(member_id):
         parent_phone = get_phone_from_form(request.form, 'parent_phone')
         birth_date = request.form.get('birth_date')
         gender = request.form.get('gender')
+        branch = request.form.get('branch') if request.form.get('branch') in BRANCHES else (member['branch'] or '태평동')
         memo = request.form.get('memo')
         status = request.form.get('status') or member['status']
         
@@ -173,10 +181,7 @@ def edit_member(member_id):
             if not membership_start_date:
                 membership_start_date = datetime.now().strftime('%Y-%m-%d')
         
-        suspension_start_date = request.form.get('suspension_start_date')
-        suspension_end_date = request.form.get('suspension_end_date')
-        
-        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, suspension_start_date, suspension_end_date)
+        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch)
         return redirect(url_for('member_detail', member_id=member_id))
     
     phone_middle, phone_last = split_phone(member['phone'])
@@ -193,6 +198,8 @@ def delete_member_page(member_id):
 @app.route('/attendance')
 def attendance():
     """출석 타임라인 테이블 뷰 (주말 토, 일 완벽 제거)"""
+    branch = request.args.get('branch', 'all')
+    branch_filter = branch if branch in BRANCHES else None
     today = datetime.now().date()
     weekday_names = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -222,7 +229,7 @@ def attendance():
         start_date = first_day.strftime('%Y-%m-%d')
         end_date = last_day.strftime('%Y-%m-%d')
         
-    members_list = get_members_by_status('active')
+    members_list = get_members_by_status('active', branch=branch_filter)
     attendance_map = get_attendance_map_for_range(start_date, end_date)
 
     absent_flags = {}
@@ -241,7 +248,9 @@ def attendance():
                            day_labels=day_labels,
                            attendance_map=attendance_map,
                            absent_flags=absent_flags,
-                           today_date=today.strftime('%Y-%m-%d'))
+                           today_date=today.strftime('%Y-%m-%d'),
+                           current_branch=branch_filter or 'all',
+                           branches=BRANCHES)
 
 @app.route('/attendance/today')
 def today_attendance():
