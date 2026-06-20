@@ -12,8 +12,7 @@
     <p class="subtitle">{{ today_date }} 출석 회원 목록</p>
 
     {% if members %}
-    <div class="table-responsive">
-        <table class="members-table">
+    <table class="members-table">
         <thead>
             <tr>
                 <th class="col-number">번호</th>
@@ -37,7 +36,6 @@
             {% endfor %}
         </tbody>
     </table>
-    </div>
     {% else %}
     <p class="no-data">오늘 출석한 회원이 없습니다.</p>
     {% endif %}
