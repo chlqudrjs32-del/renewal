@@ -111,10 +111,15 @@ def index():
     # 만료된 관원 목록
     expired_members_list = get_expired_members(branch_filter)
     
+    # 오늘 예정된 스케줄
+    today_date = datetime.now().strftime('%Y-%m-%d')
+    today_schedules = get_schedules_by_date(today_date)
+    
     return render_template('index.html',
                            stats=stats,
                            absent_members=absent_members,
                            expired_members=expired_members_list,
+                           today_schedules=today_schedules,
                            current_branch=branch_filter or 'all',
                            branches=BRANCHES)
 
