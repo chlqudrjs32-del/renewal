@@ -404,6 +404,22 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
 def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동', suspension_start_date=None, suspension_end_date=None):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
+    # 수련정지 기간을 제외한 만료일 계산
+    if status == 'suspended' and suspension_start_date and suspension_end_date:
+        try:
+            start = datetime.strptime(suspension_start_date, '%Y-%m-%d')
+            end = datetime.strptime(suspension_end_date, '%Y-%m-%d')
+            suspension_days = (end - start).days + 1  # +1: 마지막 날도 포함
+            
+            expiry_dt = datetime.strptime(expiry_date, '%Y-%m-%d')
+            expiry_date = (expiry_dt + timedelta(days=suspension_days)).strftime('%Y-%m-%d')
+        except:
+            pass
+    # 상태가 suspended가 아니면 정지 기간 정보 제거
+    elif status != 'suspended':
+        suspension_start_date = None
+        suspension_end_date = None
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
