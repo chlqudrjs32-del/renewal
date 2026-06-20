@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h3 class="fw-bold text-dark mb-4">
+                    <i class="bi bi-pencil-square text-warning me-2"></i>스케줄 수정
+                </h3>
+
+                <form action="{{ url_for('edit_schedule_page', schedule_id=schedule.id) }}" method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-bold">스케줄 제목</label>
+                        <input type="text" class="form-control rounded-3" id="title" name="title" value="{{ schedule.title }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-bold">카테고리 분류</label>
+                        <select class="form-select rounded-3" id="category" name="category" required>
+                            <option value="pt" {% if schedule.category == 'pt' %}selected{% endif %}>🥊 PT 수업</option>
+                            <option value="external" {% if schedule.category == 'external' %}selected{% endif %}>🚗 외부 활동</option>
+                            <option value="contest" {% if schedule.category == 'contest' %}selected{% endif %}>🏆 대회 활동</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="schedule_date" class="form-label fw-bold">날짜</label>
+                            <input type="date" class="form-control rounded-3" id="schedule_date" name="schedule_date" value="{{ schedule.schedule_date }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="start_time" class="form-label fw-bold">시작 시간</label>
+                            <input type="time" class="form-control rounded-3" id="start_time" name="start_time" value="{{ schedule.start_time }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="end_time" class="form-label fw-bold">종료 시간</label>
+                            <input type="time" class="form-control rounded-3" id="end_time" name="end_time" value="{{ schedule.end_time }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold">상세 내용 (메모)</label>
+                        <textarea class="form-control rounded-3" id="description" name="description" rows="4">{{ schedule.description }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{{ url_for('schedule') }}" class="btn btn-light rounded-pill px-4">취소</a>
+                        <button type="submit" class="btn btn-warning rounded-pill px-4">수정 완료</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

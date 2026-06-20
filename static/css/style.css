@@ -1,0 +1,911 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 네비게이션 */
+.navbar {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand a {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+.navbar-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.navbar-menu a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+}
+
+.navbar-menu a:hover,
+.navbar-menu a.active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 메인 콘텐츠 */
+main {
+    min-height: 80vh;
+    margin-bottom: 2rem;
+}
+
+/* 대시보드 */
+.dashboard h1 {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.stat-card-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    font-size: 3rem;
+}
+
+.stat-content h3 {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.stat-card.alert-warning {
+    border-left: 4px solid #f39c12;
+}
+
+.stat-card.alert-danger {
+    border-left: 4px solid #e74c3c;
+}
+
+/* 버튼 */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-success {
+    background-color: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #229954;
+}
+
+.btn-warning {
+    background-color: #f39c12;
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #d68910;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.btn-info {
+    background-color: #9b59b6;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #8e44ad;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+/* 페이지 헤더 */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+}
+
+.page-header h1 .member-count {
+    font-size: 0.7em;
+    color: #666;
+    font-weight: normal;
+    margin-left: 0.5rem;
+}
+
+.col-number {
+    width: 60px;
+    text-align: center;
+    color: #7f8c8d;
+    font-weight: 500;
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+}
+
+/* 테이블 */
+.members-table,
+.report-table,
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.members-table thead,
+.report-table thead,
+.attendance-table thead {
+    background-color: #34495e;
+    color: white;
+}
+
+.members-table th,
+.members-table td,
+.report-table th,
+.report-table td,
+.attendance-table th,
+.attendance-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.members-table tbody tr:hover,
+.report-table tbody tr:hover,
+.attendance-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.members-table tr.expired {
+    background-color: #fadbd8;
+}
+
+.text-danger {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.text-warning {
+    color: #f39c12;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-active {
+    background-color: #d5f4e6;
+    color: #27ae60;
+}
+
+.status-suspended {
+    background-color: #fef5e7;
+    color: #f39c12;
+}
+
+.status-inactive {
+    background-color: #fadbd8;
+    color: #e74c3c;
+}
+
+.membership-info {
+    font-weight: 600;
+}
+
+.membership-type {
+    background-color: #ebf5fb;
+    color: #3498db;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* 폼 */
+.form-page h1 {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #7f8c8d;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+/* 상세 페이지 */
+.member-detail {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.detail-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-section {
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.detail-section h2 {
+    font-size: 1.2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item .label {
+    font-weight: 600;
+    color: #34495e;
+}
+
+.detail-item .value {
+    text-align: right;
+}
+
+.memo-text {
+    background: white;
+    padding: 1rem;
+    border-left: 4px solid #3498db;
+    border-radius: 4px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #d5f4e6;
+    color: #27ae60;
+}
+
+.badge-danger {
+    background-color: #fadbd8;
+    color: #e74c3c;
+}
+
+.badge-warning {
+    background-color: #fdeaa8;
+    color: #f39c12;
+}
+
+.badge-secondary {
+    background-color: #ecf0f1;
+    color: #7f8c8d;
+}
+
+/* 출석 관리 */
+.attendance-page h1 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-size: 1.3rem;
+}
+
+.attendance-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.page-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.attendance-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.attendance-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #555;
+    font-size: 0.75rem;
+}
+
+.search-box {
+    margin-bottom: 0.75rem;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.5rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.page-header-actions .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-board-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.attendance-board-table thead {
+    background: #34495e;
+    color: white;
+}
+
+.attendance-board-table th,
+.attendance-board-table td {
+    padding: 0.4rem 0.2rem;
+    text-align: center;
+    border-bottom: 1px solid #ecf0f1;
+    vertical-align: middle;
+}
+
+.attendance-board-table th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.attendance-board-table tbody tr:hover {
+    background-color: #f8fbff;
+}
+
+.attendance-board-table .col-number {
+    min-width: 30px;
+    width: 30px;
+}
+
+.attendance-board-table .col-name,
+.attendance-board-table .member-name {
+    text-align: left;
+    font-weight: 600;
+    min-width: 60px;
+    position: sticky;
+    left: 30px;
+    background: white;
+    z-index: 1;
+    font-size: 0.75rem;
+}
+
+.attendance-board-table thead .col-name {
+    background: #34495e;
+    color: white;
+}
+
+.attendance-board-table tbody tr:hover .col-name {
+    background: #f8fbff;
+}
+
+.attendance-board-table .col-recent,
+.attendance-board-table .col-renewal {
+    min-width: 50px;
+    font-size: 0.7rem;
+}
+
+.attendance-board-table .col-day {
+    width: 28px;
+    min-width: 28px;
+}
+
+.attendance-board-table .col-today {
+    background: rgba(52, 152, 219, 0.12);
+}
+
+.attendance-board-table thead .col-today {
+    background: #2980b9;
+}
+
+.day-weekday {
+    display: block;
+    font-size: 0.65rem;
+    opacity: 0.9;
+    line-height: 1;
+}
+
+.day-date {
+    display: block;
+    font-size: 0.65rem;
+    line-height: 1;
+}
+
+.day-cell {
+    transition: background-color 0.2s ease;
+}
+
+.day-cell:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+}
+
+.day-cell .day-mark {
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: transform 0.1s ease;
+}
+
+.day-cell:hover .day-mark {
+    transform: scale(1.2);
+}
+
+.day-mark.attended {
+    color: #27ae60;
+}
+
+.day-mark.missed {
+    color: #bdc3c7;
+}
+
+.attendance-icon-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: #27ae60;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.attendance-icon-btn:hover {
+    background: #219a52;
+    transform: scale(1.08);
+}
+
+.attendance-board-table .col-check {
+    min-width: 40px;
+}
+
+.attendance-board-table .col-absent {
+    min-width: 45px;
+}
+
+.absent-none {
+    color: #bdc3c7;
+}
+
+/* 보고서 */
+.reports-page h1 {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.report-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-button:hover {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.tab-button.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.report-table h2 {
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+}
+
+/* 알림 */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background-color: #d5f4e6;
+    color: #27ae60;
+    border-left-color: #27ae60;
+}
+
+.alert-danger {
+    background-color: #fadbd8;
+    color: #e74c3c;
+    border-left-color: #e74c3c;
+}
+
+.alert-warning {
+    background-color: #fdeaa8;
+    color: #f39c12;
+    border-left-color: #f39c12;
+}
+
+/* 빈 상태 */
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* 에러 페이지 */
+.error-page {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.error-page h1 {
+    margin-bottom: 1rem;
+    color: #e74c3c;
+}
+
+/* 푸터 */
+footer {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-top: 4rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .navbar-menu {
+        gap: 1rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-container {
+        padding: 1rem;
+    }
+
+    .members-table,
+    .report-table {
+        font-size: 0.875rem;
+    }
+
+    .members-table th,
+    .members-table td,
+    .report-table th,
+    .report-table td {
+        padding: 0.5rem;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .report-tabs {
+        flex-direction: column;
+    }
+
+    .tab-button {
+        width: 100%;
+    }
+
+    .search-input {
+        max-width: 100%;
+    }
+}
+
+/* 상태별 탭 */
+.status-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.tab-btn:hover {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.tab-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}

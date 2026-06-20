@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TSC킥복싱 관원관리 프로그램{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+        }
+
+        .wide-container {
+            width: 96% !important;
+            max-width: 96% !important;
+            margin: 0 auto;
+            padding: 30px 0;
+        }
+
+        /* 프리미엄 상단 헤더 공통 스타일 (TSC 킥복싱 시그니처 딥 다크) */
+        .page-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 16px;
+            padding: 28px 36px;
+            color: #ffffff;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+            margin-bottom: 30px;
+        }
+        .page-header p {
+            color: #94a3b8;
+        }
+
+        /* 프리미엄 카드 스타일 */
+        .premium-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(229, 231, 235, 0.7);
+            padding: 28px;
+            margin-bottom: 25px;
+        }
+
+        /* 공통 버튼 스타일 */
+        .btn-premium-primary {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-premium-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            color: white;
+        }
+        .btn-premium-outline {
+            background-color: #ffffff;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-premium-outline:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+            color: #1e293b;
+        }
+
+        /* 프리미엄 테이블 공통 */
+        .premium-table {
+            margin-bottom: 0;
+        }
+        .premium-table th {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 600;
+            padding: 14px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .premium-table td {
+            padding: 14px;
+            vertical-align: middle;
+        }
+
+        .phone-input-group .phone-prefix {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .phone-input-group .phone-separator {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .phone-input-group .phone-part {
+            max-width: 88px;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3 px-2">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+                <i class="bi bi-lightning-charge-fill text-warning fs-3"></i> 
+                <span>TSC 킥복싱 관원관리</span>
+            </a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto fs-6">
+                    <li class="nav-item px-2">
+                        <a class="nav-link {% if request.path == '/' %}active fw-bold text-white{% endif %}" href="/">
+                            <i class="bi bi-grid-1x2-fill me-1"></i> 대시보드
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link {% if request.path.startswith('/members') %}active fw-bold text-white{% endif %}" href="/members">
+                            <i class="bi bi-person-badge-fill me-1"></i> 관원 관리
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-white nav-link {% if request.path.startswith('/attendance') %}active fw-bold text-white{% endif %}" href="/attendance">
+                            <i class="bi bi-calendar-check-fill me-1"></i> 출석 관리
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link {% if request.path.startswith('/schedule') %}active fw-bold text-white{% endif %}" href="/schedule">
+                            <i class="bi bi-calendar3-event me-1"></i> 스케줄
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link {% if request.path.startswith('/reports') %}active fw-bold text-white{% endif %}" href="/reports">
+                            <i class="bi bi-graph-up-arrow me-1"></i> 분석 보고서
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wide-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

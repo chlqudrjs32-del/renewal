@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+            <i class="bi bi-grid-1x2-fill text-primary"></i> TSC 킥복싱 관원 현황판
+        </h2>
+        <p class="m-0 mt-2 fs-6">오늘의 실시간 출석 현황과 도장 운영 및 관원 지표를 시각적으로 분석합니다.</p>
+    </div>
+    <div>
+        <span class="badge bg-dark p-2 fs-6 fw-bold rounded-pill shadow-sm" style="letter-spacing: 0.5px;">
+            <i class="bi bi-clock-fill me-2 text-warning animate-pulse"></i>
+            <span id="live-clock">일시 로딩 중...</span>
+        </span>
+    </div>
+</div>
+
+<div class="premium-card">
+    <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 지점별 현황 보기</label>
+    <div class="btn-group w-100 shadow-sm" role="group">
+        <a href="{{ url_for('index', branch='all') }}" class="btn {% if current_branch == 'all' %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">전체 지점</a>
+        {% for branch in branches %}
+        <a href="{{ url_for('index', branch=branch) }}" class="btn {% if current_branch == branch %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">{{ branch }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden"
+             onclick="location.href='{{ url_for('members', branch=current_branch) }}';"
+             style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; cursor: pointer; transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.02)';"
+             onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-6 fw-medium opacity-75">전체 활성 관원</span>
+                    <i class="bi bi-people-fill fs-3 opacity-50"></i>
+                </div>
+                <h2 class="fw-bold m-0 display-5">
+                    {{ stats.total_members if stats.total_members is defined else 0 }}<span class="fs-4 fw-normal"> 명</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4" 
+             onclick="location.href='{{ url_for('attendance', branch=current_branch) }}';" 
+             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; cursor: pointer; transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.02)';" 
+             onmouseout="this.style.transform='scale(1)';"
+             title="클릭하여 오늘 출석 명단 보기">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-6 fw-medium opacity-75">오늘 출석 관원</span>
+                    <i class="bi bi-calendar-check-fill fs-3 opacity-50"></i>
+                </div>
+                <h2 class="fw-bold m-0 display-5">
+                    {{ stats.today_attendance if stats.today_attendance is defined else 0 }}<span class="fs-4 fw-normal"> 명</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4"
+             onclick="location.href='{{ url_for('members', branch=current_branch) }}';"
+             style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; cursor: pointer; transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.02)';"
+             onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-6 fw-medium opacity-75">장기 미출석 (3일+)</span>
+                    <i class="bi bi-exclamation-triangle-fill fs-3 opacity-50"></i>
+                </div>
+                <h2 class="fw-bold m-0 display-5">
+                    {{ stats.absent_3days if stats.absent_3days is defined else 0 }}<span class="fs-4 fw-normal"> 명</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4" 
+             onclick="location.href='/reports?tab=expiring';" 
+             style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; cursor: pointer; transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.02)';" 
+             onmouseout="this.style.transform='scale(1)';"
+             title="클릭하여 만료 예정 관원 명단 보기">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-6 fw-medium opacity-75">5일 내 만료 예정</span>
+                    <i class="bi bi-hourglass-bottom fs-3 opacity-50"></i>
+                </div>
+                <h2 class="fw-bold m-0 display-5">
+                    {{ stats.expiring_soon if stats.expiring_soon is defined else 0 }}<span class="fs-4 fw-normal"> 명</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="premium-card h-100">
+            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
+                <i class="bi bi-person-x-fill text-warning"></i> 집중 케어 대상 관원 (장기 미출석)
+            </h4>
+            <div class="table-responsive">
+                <table class="table premium-table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>지점</th>
+                            <th>이름</th>
+                            <th>연락처</th>
+                            <th>마지막 출석일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if absent_members %}
+                            {% for member in absent_members %}
+                            <tr>
+                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ member.branch or '태평동' }}</span></td>
+                                <td class="fw-bold"><a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a></td>
+                                <td class="text-secondary">{{ member.phone }}</td>
+                                <td><span class="badge bg-light text-danger p-2 border border-danger-subtle">{{ member.last_attendance if member.last_attendance else '기록 없음' }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">안심하세요! 장기 미출석 관원이 없습니다.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+        <div class="premium-card h-100">
+            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
+                <i class="bi bi-calendar3-event-fill text-primary"></i> 오늘 예정된 타임 / 세션
+            </h4>
+            <div class="d-flex flex-column gap-3">
+                {% if today_schedules %}
+                    {% for item in today_schedules %}
+                    <div class="p-3 rounded-4 border-start border-4 shadow-sm" style="background-color: #f8fafc; border-color: #2563eb !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark fs-5">{{ item.title }}</span>
+                            <span class="badge bg-primary rounded-pill">{{ item.start_time }} ~ {{ item.end_time }}</span>
+                        </div>
+                        <p class="text-muted small m-0">{{ item.description or '상세 내용 없음' }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x fs-1 opacity-20 d-block mb-2"></i> 오늘 등록된 스케줄이 없습니다.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateLiveClock() {
+        const now = new Date();
+        
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const date = String(now.getDate()).padStart(2, '0');
+        
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        // 요일 배열 추가
+        const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = weekDays[now.getDay()];
+
+        // 출력 형식 설정: 2026년 06월 14일 (일) 22:30:05
+        const timeString = `${year}년 ${month}월 ${date}일 (${dayName}) ${hours}:${minutes}:${seconds}`;
+        
+        document.getElementById('live-clock').textContent = timeString;
+    }
+
+    // 페이지 열리자마자 바로 실행 후, 1초(1000밀리초)마다 무한 반복 재생
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
+</script>
+{% endblock %}

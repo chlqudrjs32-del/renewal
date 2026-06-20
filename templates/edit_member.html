@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-pencil-square text-primary"></i> 관원 정보 수정
+    </h2>
+    <p class="m-0 mt-2 fs-6">관원의 인적 사항, 수련 부서 분류 및 회원권 상태를 수정합니다.</p>
+</div>
+
+<div class="premium-card" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST" action="/members/{{ member.id }}/edit" onsubmit="prepareEditData()">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">관원 이름</label>
+                <input type="text" name="name" class="form-control form-control-lg rounded-3 border-2" value="{{ member.name }}" required>
+            </div>
+            
+            {% with prefix='phone', label='휴대폰 번호', middle=phone_middle, last=phone_last, required=True, icon='', input_style='' %}
+            {% include 'partials/phone_field.html' %}
+            {% endwith %}
+
+            {% with prefix='parent_phone', label='학부모 연락처', middle=parent_middle, last=parent_last, required=False, icon='', input_style='' %}
+            {% include 'partials/phone_field.html' %}
+            {% endwith %}
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">생년월일</label>
+                <input type="date" name="birth_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.birth_date }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">성별</label>
+                <div class="d-flex gap-3">
+                    <input type="radio" class="btn-check" name="gender" id="genderM" value="M" {% if member.gender == 'M' %}checked{% endif %}>
+                    <label class="btn btn-outline-dark w-50 py-2.5 fw-semibold" for="genderM">남성</label>
+
+                    <input type="radio" class="btn-check" name="gender" id="genderF" value="F" {% if member.gender == 'F' %}checked{% endif %}>
+                    <label class="btn btn-outline-dark w-50 py-2.5 fw-semibold" for="genderF">여성</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 소속 지점</label>
+                <select name="branch" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary">
+                    {% for branch in ['태평동', '복수동'] %}
+                    <option value="{{ branch }}" {% if (member.branch or '태평동') == branch %}selected{% endif %}>{{ branch }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-tags-fill text-primary me-1"></i> 수련 부서 분류 수정</label>
+                <select id="fake_division" class="form-select form-select-lg rounded-3 border-2 fw-bold text-primary">
+                    <option value="초등부">초등부 (Kids)</option>
+                    <option value="중등부">중등부 (Junior)</option>
+                    <option value="고등부">고등부 (High)</option>
+                    <option value="성인부">성인부 (Adult)</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">회원권 종류</label>
+                <select name="membership_type" class="form-select form-select-lg rounded-3 border-2">
+                    <option value="1" {% if member.membership_type == 1 %}selected{% endif %}>1개월권</option>
+                    <option value="3" {% if member.membership_type == 3 %}selected{% endif %}>3개월권</option>
+                    <option value="6" {% if member.membership_type == 6 %}selected{% endif %}>6개월권</option>
+                    <option value="12" {% if member.membership_type == 12 %}selected{% endif %}>12개월권</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">회원권 시작일</label>
+                <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.membership_start_date }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2">수련 상태 설정</label>
+                <select name="status" id="statusSelect" class="form-select form-select-lg rounded-3 border-2" onchange="toggleSuspensionFields()">
+                    <option value="active" {% if member.status == 'active' %}selected{% endif %}>정상 수련 (Active)</option>
+                    <option value="suspended" {% if member.status == 'suspended' %}selected{% endif %}>수련 정지 (Suspended)</option>
+                    <option value="inactive" {% if member.status == 'inactive' %}selected{% endif %}>기간 만료 (Inactive)</option>
+                </select>
+            </div>
+
+            <div class="col-md-6" id="suspensionStartField" style="display: {% if member.status == 'suspended' %}block{% else %}none{% endif %};">
+                <label class="form-label fw-bold text-secondary mb-2">일시정지 시작일</label>
+                <input type="date" name="suspension_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_start_date or '' }}">
+            </div>
+
+            <div class="col-md-6" id="suspensionEndField" style="display: {% if member.status == 'suspended' %}block{% else %}none{% endif %};">
+                <label class="form-label fw-bold text-secondary mb-2">일시정지 종료일</label>
+                <input type="date" name="suspension_end_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_end_date or '' }}">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-bold text-secondary mb-2">특이사항 및 메모</label>
+                <textarea id="real_memo" name="memo" class="form-control rounded-3 border-2" rows="3" data-raw-memo="{{ member.memo or '' }}"></textarea>
+            </div>
+        </div>
+
+        <hr class="my-4 opacity-50">
+
+        <div class="d-flex justify-content-end gap-2">
+            <a href="/members/{{ member.id }}" class="btn btn-premium-outline">취소</a>
+            <button type="submit" class="btn btn-premium-primary"><i class="bi bi-check-lg"></i> 수정 완료</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 페이지가 열릴 때 기존 메모에서 부서 글자를 추출하여 선택창을 맞춰주는 자바스크립트
+    document.addEventListener("DOMContentLoaded", function() {
+        const memoArea = document.getElementById('real_memo');
+        const divSelect = document.getElementById('fake_division');
+        let rawMemo = memoArea.getAttribute('data-raw-memo');
+        
+        let detectedDivision = "성인부"; // 기본값
+        
+        // 메모에서 부서 태그 분석 및 분리
+        if (rawMemo.includes('[초등부]')) { detectedDivision = "초등부"; rawMemo = rawMemo.replace('[초등부] ', '').replace('[초등부]', ''); }
+        else if (rawMemo.includes('[중등부]')) { detectedDivision = "중등부"; rawMemo = rawMemo.replace('[중등부] ', '').replace('[중등부]', ''); }
+        else if (rawMemo.includes('[고등부]')) { detectedDivision = "고등부"; rawMemo = rawMemo.replace('[고등부] ', '').replace('[고등부]', ''); }
+        else if (rawMemo.includes('[성인부]')) { detectedDivision = "성인부"; rawMemo = rawMemo.replace('[성인부] ', '').replace('[성인부]', ''); }
+        
+        // 선택창에 반영하고 순수 메모 글자만 메모 박스에 노출
+        divSelect.value = detectedDivision;
+        memoArea.value = rawMemo.trim();
+    });
+
+    // 수정 완료 버튼을 누를 때 선택된 부서를 메모장 맨 앞에 다시 붙여서 서버로 전송
+    function prepareEditData() {
+        const divSelect = document.getElementById('fake_division');
+        const memoArea = document.getElementById('real_memo');
+        
+        const selectedDivision = divSelect.value;
+        const pureMemo = memoArea.value;
+        
+        // [부서] 형태로 재조립하여 덮어쓰기
+        memoArea.value = `[${selectedDivision}] ${pureMemo}`.trim();
+    }
+
+    // 수련 상태가 변경될 때 일시정지 기간 입력 필드 표시/숨김
+    function toggleSuspensionFields() {
+        const statusSelect = document.getElementById('statusSelect');
+        const suspensionStartField = document.getElementById('suspensionStartField');
+        const suspensionEndField = document.getElementById('suspensionEndField');
+        
+        if (statusSelect.value === 'suspended') {
+            suspensionStartField.style.display = 'block';
+            suspensionEndField.style.display = 'block';
+        } else {
+            suspensionStartField.style.display = 'none';
+            suspensionEndField.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
