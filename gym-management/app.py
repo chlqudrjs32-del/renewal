@@ -9,7 +9,7 @@ from database import (
     get_member_attendance_by_month, get_all_attendance_by_month, get_day_attendance_members,
     get_attendance_map_for_range, toggle_attendance, clear_today_attendance, toggle_attendance_by_date,
     get_all_schedules, get_schedules_by_month, get_schedules_by_date, get_schedule_by_id,
-    add_schedule, update_schedule, delete_schedule
+    add_schedule, update_schedule, delete_schedule, get_expired_members, get_expired_members_count
 )
 from config import Config
 
@@ -89,13 +89,17 @@ def index():
         'absent_3days': get_absent_members_count(3),
         'absent_5days': get_absent_members_count(5),
         'absent_7days': get_absent_members_count(7),
-        'expiring_soon': get_overdue_members_count()  # 5일 기준 자동 집계
+        'expiring_soon': get_overdue_members_count(),  # 5일 기준 자동 집계
+        'expired_members': get_expired_members_count()  # 만료된 관원 수
     }
     
     # 미출석 명단 내역 데이터 확보 완료!
     absent_members = get_absent_members(3)
     
-    return render_template('index.html', stats=stats, absent_members=absent_members)
+    # 만료된 관원 목록
+    expired_members_list = get_expired_members()
+    
+    return render_template('index.html', stats=stats, absent_members=absent_members, expired_members=expired_members_list)
 
 @app.route('/members')
 def members():

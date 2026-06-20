@@ -468,3 +468,28 @@ def delete_schedule(schedule_id):
     cursor.execute('DELETE FROM schedule WHERE id = ?', (schedule_id,))
     conn.commit()
     conn.close()
+
+def get_expired_members():
+    """만료된 관원(inactive status) 목록 조회"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT m.*,
+               (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
+               (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
+        FROM members m 
+        WHERE m.status = 'inactive'
+        ORDER BY m.expiry_date DESC
+    ''')
+    result = cursor.fetchall()
+    conn.close()
+    return result
+
+def get_expired_members_count():
+    """만료된 관원(inactive status) 수 조회"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'inactive'")
+    result = cursor.fetchone()
+    conn.close()
+    return result['count'] if result else 0
