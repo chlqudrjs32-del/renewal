@@ -167,9 +167,9 @@ def get_member_count(branch=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     if branch in ['태평동', '복수동']:
-        cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active' AND branch = ?", (branch,))
+        cursor.execute("SELECT COUNT(*) as count FROM members WHERE (status = 'active' OR status = 'suspended') AND branch = ?", (branch,))
     else:
-        cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active'")
+        cursor.execute("SELECT COUNT(*) as count FROM members WHERE status = 'active' OR status = 'suspended'")
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
@@ -218,7 +218,7 @@ def get_absent_members_count(days, branch=None):
     cursor = conn.cursor()
     query = '''
         SELECT COUNT(*) as count FROM members m
-        WHERE m.status = 'active' AND m.id NOT IN (
+        WHERE (m.status = 'active' OR m.status = 'suspended') AND m.id NOT IN (
             SELECT DISTINCT member_id FROM attendance 
             WHERE attendance_date > ?
         )
@@ -240,7 +240,7 @@ def get_absent_members(days, branch=None):
         SELECT m.*, 
                (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
         FROM members m
-        WHERE m.status = 'active' AND m.id NOT IN (
+        WHERE (m.status = 'active' OR m.status = 'suspended') AND m.id NOT IN (
             SELECT DISTINCT member_id FROM attendance 
             WHERE attendance_date > ?
         )
