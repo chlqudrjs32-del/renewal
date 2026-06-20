@@ -335,30 +335,42 @@ def get_members_by_status(status, search_query=None, branch=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     branch_filter = branch if branch in ['태평동', '복수동'] else None
+    
+    # status='active'일 때 정지 관원도 함께 포함
+    if status == 'active':
+        status_filter = "(m.status = 'active' OR m.status = 'suspended')"
+        use_param = False
+    else:
+        status_filter = "m.status = ?"
+        use_param = True
+    
     if search_query:
-        query = '''
+        query = f'''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
             FROM members m
-            WHERE m.status = ? AND (m.name LIKE ? OR m.phone LIKE ? OR m.parent_phone LIKE ?)
+            WHERE {status_filter} AND (m.name LIKE ? OR m.phone LIKE ? OR m.parent_phone LIKE ?)
         '''
-        params = [status, f'%{search_query}%', f'%{search_query}%', f'%{search_query}%']
+        params = []
+        if use_param:
+            params.append(status)
+        params.extend([f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'])
         if branch_filter:
             query += ' AND m.branch = ?'
             params.append(branch_filter)
-        query += '''
-            ORDER BY m.registration_date DESC
-        '''
+        query += ' ORDER BY m.registration_date DESC'
         cursor.execute(query, params)
     else:
-        query = '''
+        query = f'''
             SELECT m.*,
                    (SELECT COUNT(*) FROM attendance WHERE member_id = m.id) as total_attendance,
                    (SELECT MAX(attendance_date) FROM attendance WHERE member_id = m.id) as last_attendance
-            FROM members m WHERE m.status = ?
+            FROM members m WHERE {status_filter}
         '''
-        params = [status]
+        params = []
+        if use_param:
+            params.append(status)
         if branch_filter:
             query += ' AND m.branch = ?'
             params.append(branch_filter)
