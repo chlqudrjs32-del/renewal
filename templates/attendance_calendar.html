@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}월별 출석 달력 - 체육관 회원관리{% endblock %}
+
+{% block content %}
+<div class="calendar-page">
+    <div class="page-header">
+        <h1>📅 월별 출석 달력</h1>
+        <p class="subtitle">전체 회원 출석 현황</p>
+    </div>
+
+    <div class="calendar-nav">
+        <a href="{{ url_for('attendance_calendar', year=year-1 if month == 1 else year, month=month-1 if month > 1 else 12) }}" class="btn btn-secondary">◀ 이전</a>
+        <span class="calendar-title">{{ year }}년 {{ month }}월</span>
+        <a href="{{ url_for('attendance_calendar', year=year+1 if month == 12 else year, month=month+1 if month < 12 else 1) }}" class="btn btn-secondary">다음 ▶</a>
+    </div>
+
+    <div class="calendar-container">
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>일</th>
+                    <th>월</th>
+                    <th>화</th>
+                    <th>수</th>
+                    <th>목</th>
+                    <th>금</th>
+                    <th>토</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in calendar_weeks %}
+                <tr>
+                    {% for day in week %}
+                    <td class="calendar-day {% if day is none %}other-month{% endif %}">
+                        {% if day is not none %}
+                            {% set date_str = '%04d-%02d-%02d'|format(year, month, day) %}
+                            <div class="day-header">{{ day }}</div>
+                            {% if date_str in attendance_dict %}
+                            <div class="attendance-badge">👥 {{ attendance_dict[date_str] }}명</div>
+                            {% else %}
+                            <div class="no-attendance">출석 없음</div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="legend-badge">👥 숫자</span> = 그날 출석한 회원 수
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge">상세</span> = 그날 출석 회원 목록 보기
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('attendance') }}" class="btn btn-secondary">빠른 출석 등록</a>
+        <a href="{{ url_for('reports') }}" class="btn btn-warning">미출석 현황</a>
+    </div>
+</div>
+
+<style>
+.calendar-page {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.calendar-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    min-width: 150px;
+    text-align: center;
+}
+
+.calendar-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendar-table thead {
+    background: #34495e;
+    color: white;
+}
+
+.calendar-table th {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.calendar-day {
+    border: 1px solid #ecf0f1;
+    padding: 0.5rem;
+    height: 120px;
+    vertical-align: top;
+    background: #f9f9f9;
+    position: relative;
+}
+
+.calendar-day.other-month {
+    background: #e8e8e8;
+    opacity: 0.5;
+}
+
+.day-header {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.attendance-badge {
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.no-attendance {
+    color: #95a5a6;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.calendar-legend {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.legend-item {
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.legend-badge {
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 0 0;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+        height: 100px;
+        font-size: 0.85rem;
+    }
+    
+    .calendar-title {
+        min-width: 120px;
+    }
+}
+</style>
+{% endblock %}

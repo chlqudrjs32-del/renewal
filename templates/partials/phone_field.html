@@ -1,0 +1,32 @@
+<div class="col-md-6">
+    <label class="form-label fw-bold text-secondary mb-2">
+        {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %} {{ label }}
+    </label>
+    <div class="phone-input-group d-flex align-items-center gap-2">
+        <span class="phone-prefix">010</span>
+        <span class="phone-separator">-</span>
+        <input type="text"
+               name="{{ prefix }}_middle"
+               class="form-control form-control-lg rounded-3 border-2 phone-part text-center"
+               maxlength="4"
+               inputmode="numeric"
+               pattern="\d{4}"
+               placeholder="1234"
+               value="{{ middle }}"
+               {% if required %}required{% endif %}
+               autocomplete="off"
+               {% if input_style %}style="{{ input_style }}"{% endif %}>
+        <span class="phone-separator">-</span>
+        <input type="text"
+               name="{{ prefix }}_last"
+               class="form-control form-control-lg rounded-3 border-2 phone-part text-center"
+               maxlength="4"
+               inputmode="numeric"
+               pattern="\d{4}"
+               placeholder="5678"
+               value="{{ last }}"
+               {% if required %}required{% endif %}
+               autocomplete="off"
+               {% if input_style %}style="{{ input_style }}"{% endif %}>
+    </div>
+</div>

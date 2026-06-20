@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-file-earmark-bar-graph-fill text-primary"></i> 체육관 통합 운영 분석 보고서
+    </h2>
+    <p class="m-0 mt-2 fs-6">정기적인 이탈 방지 케어와 재등록 프로모션을 위해 필터링된 타깃 분석 데이터입니다.</p>
+</div>
+
+<div class="premium-card">
+    <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-3 bg-light border" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold py-3" id="expiring-tab" data-bs-toggle="tab" data-bs-target="#expiring-panel" type="button" role="tab">
+                <i class="bi bi-hourglass-split me-1 text-danger"></i> 7일 이내 만료 예정 회원
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold py-3" id="absent3-tab" data-bs-toggle="tab" data-bs-target="#absent3-panel" type="button" role="tab">
+                <i class="bi bi-person-exclamation me-1 text-warning"></i> 단기 미출석 (3일 이상)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold py-3" id="absent7-tab" data-bs-toggle="tab" data-bs-target="#absent7-panel" type="button" role="tab">
+                <i class="bi bi-person-x-fill me-1 text-danger"></i> 장기 이탈 위험 (7일 이상)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportTabsContent">
+        
+        <div class="tab-pane fade show active" id="expiring-panel" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-dark m-0"><i class="bi bi-list-check text-danger"></i> 수강권 재등록 권유 대상 목록</h4>
+                <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-bold">대응 필요</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table premium-table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>회원명</th>
+                            <th>전화번호</th>
+                            <th>수강권 종류</th>
+                            <th>최종 만료 기한</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in expiring_members %}
+                        <tr>
+                            <td class="fw-bold text-dark fs-5">{{ m.name }}</td>
+                            <td class="text-secondary">{{ m.phone }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ m.membership_type }}개월권</span></td>
+                            <td class="text-danger fw-bold"><i class="bi bi-calendar-x me-1"></i> {{ m.expiry_date }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">7일 이내에 회원권이 만료되는 회원이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="absent3-panel" role="tabpanel">
+            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-telephone-outbound text-warning"></i> 출석 독려 안내문자 발송 권장 명단</h4>
+            <div class="table-responsive">
+                <table class="table premium-table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>회원명</th>
+                            <th>전화번호</th>
+                            <th>마지막 출석 기록일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in absent_3days %}
+                        <tr>
+                            <td class="fw-bold text-dark fs-5">{{ m.name }}</td>
+                            <td class="text-secondary">{{ m.phone }}</td>
+                            <td class="fw-semibold text-warning"><i class="bi bi-clock-history"></i> {{ m.last_attendance if m.last_attendance else '출석 기록 없음' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-muted">현재 단기 미출석 중인 회원이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="absent7-panel" role="tabpanel">
+            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-shield-fill-x text-danger"></i> 집중 밀착 관리 대상 (장기 결석 상태)</h4>
+            <div class="table-responsive">
+                <table class="table premium-table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>회원명</th>
+                            <th>전화번호</th>
+                            <th>마지막 출석 기록일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in absent_7days %}
+                        <tr class="table-danger-subtle">
+                            <td class="fw-bold text-danger fs-5">{{ m.name }}</td>
+                            <td class="text-secondary">{{ m.phone }}</td>
+                            <td class="fw-bold text-danger"><i class="bi bi-exclamation-octagon-fill"></i> {{ m.last_attendance if m.last_attendance else '출석 기록 없음' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-muted">정말 훌륭합니다! 7일 이상 결석한 장기 이탈 회원이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

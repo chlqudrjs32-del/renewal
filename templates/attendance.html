@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold m-0"><i class="bi bi-calendar-check text-primary me-2"></i>관원 출석부</h2>
+        <p class="text-muted m-0 mt-1">이번 달 평일 출석 현황을 관리합니다. (토/일 주말 제외)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button id="save-attendance-btn" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-check-circle-fill me-1"></i> 변경사항 현황판 반영
+        </button>
+        <button id="clear-attendance-btn" class="btn btn-outline-danger rounded-pill px-4 shadow-sm">
+            오늘 출석 전체 초기화
+        </button>
+    </div>
+</div>
+
+<div id="alert-box" class="alert alert-info rounded-4 shadow-sm border-0 d-none animate__animated animate__fadeIn" role="alert">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-info-circle-fill fs-5 text-info"></i>
+        <span id="alert-message" class="fw-medium">출석 변경 내역이 존재합니다. [변경사항 현황판 반영] 버튼을 눌러주세요.</span>
+    </div>
+</div>
+
+<div class="premium-card">
+    <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 지점별 출석부 보기</label>
+    <div class="btn-group w-100 shadow-sm" role="group">
+        <a href="{{ url_for('attendance', branch='all') }}" class="btn {% if current_branch == 'all' %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">전체 지점</a>
+        {% for branch in branches %}
+        <a href="{{ url_for('attendance', branch=branch) }}" class="btn {% if current_branch == branch %}btn-primary fw-bold text-white{% else %}btn-outline-secondary{% endif %}">{{ branch }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle m-0 text-center">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 90px;">지점</th>
+                    <th style="width: 120px;" class="text-start ps-4">이름</th>
+                    <th style="width: 140px;">연락처</th>
+                    <th style="width: 100px;">미출석 일수</th>
+                    {% for day in day_labels %}
+                    <th class="{% if day.is_today %}table-primary text-primary fw-bold{% endif %}" style="min-width: 65px;">
+                        <div>{{ day.label }}</div>
+                        <small class="opacity-75">{{ day.weekday }}</small>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if members %}
+                    {% for member in members %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">{{ member.branch or '태평동' }}</span>
+                        </td>
+                        <td class="text-start ps-4 fw-bold">
+                            <a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a>
+                        </td>
+                        <td class="text-secondary small">{{ member.phone or '-' }}</td>
+                        <td>
+                            {% set days = absent_flags[member.id] %}
+                            {% if days >= 999 %}
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill">기록 없음</span>
+                            {% elif days >= 7 %}
+                                <span class="badge bg-danger text-white rounded-pill">{{ days }}일째</span>
+                            {% elif days >= 3 %}
+                                <span class="badge bg-warning text-dark rounded-pill">{{ days }}일째</span>
+                            {% else %}
+                                <span class="badge bg-light text-success border rounded-pill">양호</span>
+                            {% endif %}
+                        </td>
+                        {% for day in day_labels %}
+                        {% set is_checked = day.date in attendance_map[member.id] if member.id in attendance_map else false %}
+                        <td class="{% if day.is_today %}table-primary-subtle{% endif %}">
+                            <div class="form-check form-switch d-inline-block m-0">
+                                <input class="form-check-input attendance-switch" type="checkbox" 
+                                       data-member-id="{{ member.id }}" 
+                                       data-date="{{ day.date }}"
+                                       {% if is_checked %}checked{% endif %}
+                                       style="cursor: pointer; width: 2.5em; height: 1.25em;">
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="{{ 4 + len(day_labels) }}" class="text-center py-5 text-muted">
+                        등록된 활성 관원이 없습니다. 관원 관리 메뉴에서 관원을 먼저 추가해 주세요.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const switches = document.querySelectorAll('.attendance-switch');
+    const saveBtn = document.getElementById('save-attendance-btn');
+    const clearBtn = document.getElementById('clear-attendance-btn');
+    const alertBox = document.getElementById('alert-box');
+    const alertMessage = document.getElementById('alert-message');
+
+    let hasChanges = false;
+
+    // 1. 스위치 클릭 시 비동기로 즉시 DB 데이터만 토글링
+    switches.forEach(element => {
+        element.addEventListener('change', function() {
+            const memberId = this.getAttribute('data-member-id');
+            const dateStr = this.getAttribute('data-date');
+            
+            hasChanges = true;
+            alertBox.classList.remove('d-none');
+            alertBox.classList.remove('alert-success');
+            alertBox.classList.add('alert-info');
+            alertMessage.textContent = "출석 데이터가 변경되었습니다. 최종 집계에 반영하려면 상단의 [변경사항 현황판 반영] 버튼을 눌러주세요.";
+
+            fetch(`/attendance/toggle/${memberId}/${dateStr}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('출석 기록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                    this.checked = !this.checked; // 실패시 복구
+                }
+            })
+            .catch(err => {
+                alert('서버 연결 실패');
+                this.checked = !this.checked;
+            });
+        });
+    });
+
+    // 2. [변경사항 현황판 반영] 버튼 클릭 시 대시보드 집계 연동 후 메인으로 자동 이동
+    saveBtn.addEventListener('click', function() {
+        alertBox.classList.remove('alert-info');
+        alertBox.classList.add('alert-success');
+        alertMessage.innerHTML = "<i class='bi bi-hourglass-split me-1'></i> 시스템에 반영 중입니다. 잠시만 기다려주세요...";
+        
+        setTimeout(() => {
+            // 변경 내역을 확실하게 정산하고 대시보드(메인 화면)로 깔끔하게 리다이렉트
+            window.location.href = '/';
+        }, 600);
+    });
+
+    // 3. 오늘 출석 일괄 삭제 기능
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (confirm('정말로 오늘의 모든 출석 기록을 삭제하시겠습니까?')) {
+                fetch('/attendance/clear', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.reload();
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

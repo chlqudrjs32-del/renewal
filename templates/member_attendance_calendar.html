@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.name }} - 월별 출석 달력 - 체육관 회원관리{% endblock %}
+
+{% block content %}
+<div class="calendar-page">
+    <div class="page-header">
+        <div>
+            <h1>📅 {{ member.name }} 회원 출석 달력</h1>
+            <p class="subtitle">{{ year }}년 {{ month }}월</p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('member_detail', member_id=member.id) }}" class="btn btn-secondary">회원 정보</a>
+        </div>
+    </div>
+
+    <div class="calendar-nav">
+        <a href="{{ url_for('member_attendance_calendar', member_id=member.id, year=year-1 if month == 1 else year, month=month-1 if month > 1 else 12) }}" class="btn btn-secondary">◀ 이전</a>
+        <span class="calendar-title">{{ year }}년 {{ month }}월</span>
+        <a href="{{ url_for('member_attendance_calendar', member_id=member.id, year=year+1 if month == 12 else year, month=month+1 if month < 12 else 1) }}" class="btn btn-secondary">다음 ▶</a>
+    </div>
+
+    <div class="member-info-box">
+        <div class="info-item">
+            <span class="label">이름</span>
+            <span class="value">{{ member.name }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">전화</span>
+            <span class="value">{{ member.phone or '-' }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">월 출석 횟수</span>
+            <span class="value">{{ attendance_set|length }}회</span>
+        </div>
+        <div class="info-item">
+            <span class="label">총 출석 횟수</span>
+            <span class="value">{{ member.total_attendance or 0 }}회</span>
+        </div>
+    </div>
+
+    <div class="calendar-container">
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>일</th>
+                    <th>월</th>
+                    <th>화</th>
+                    <th>수</th>
+                    <th>목</th>
+                    <th>금</th>
+                    <th>토</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in calendar_weeks %}
+                <tr>
+                    {% for day in week %}
+                    <td class="calendar-day {% if day is none %}other-month{% endif %}">
+                        {% if day is not none %}
+                            {% set date_str = '%04d-%02d-%02d'|format(year, month, day) %}
+                            <div class="day-header">{{ day }}</div>
+                            {% if date_str in attendance_set %}
+                            <div class="attendance-mark">✅ 출석</div>
+                            {% else %}
+                            <div class="no-attendance">미출석</div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="calendar-stats">
+        <div class="stat-box">
+            <span class="stat-label">이번 달 출석</span>
+            <span class="stat-value">{{ attendance_set|length }}회</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">전체 출석</span>
+            <span class="stat-value">{{ member.total_attendance or 0 }}회</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">최근 출석</span>
+            <span class="stat-value">{{ member.last_attendance or '기록없음' }}</span>
+        </div>
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="legend-badge">✅</span> = 출석한 날
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge">빈칸</span> = 미출석한 날
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('member_detail', member_id=member.id) }}" class="btn btn-primary">회원 정보</a>
+        <a href="{{ url_for('attendance') }}" class="btn btn-secondary">출석 체크</a>
+    </div>
+</div>
+
+<style>
+.calendar-page {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.calendar-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    min-width: 150px;
+    text-align: center;
+}
+
+.member-info-box {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: #34495e;
+}
+
+.info-item .value {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.calendar-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendar-table thead {
+    background: #34495e;
+    color: white;
+}
+
+.calendar-table th {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.calendar-day {
+    border: 1px solid #ecf0f1;
+    padding: 0.75rem;
+    height: 100px;
+    vertical-align: top;
+    background: #f9f9f9;
+    position: relative;
+    text-align: center;
+}
+
+.calendar-day.other-month {
+    background: #e8e8e8;
+    opacity: 0.5;
+}
+
+.day-header {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.attendance-mark {
+    background: #27ae60;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+.no-attendance {
+    color: #95a5a6;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.calendar-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.calendar-legend {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.legend-item {
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.legend-badge {
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 0 0;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+        height: 80px;
+        font-size: 0.85rem;
+    }
+    
+    .calendar-title {
+        min-width: 120px;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
