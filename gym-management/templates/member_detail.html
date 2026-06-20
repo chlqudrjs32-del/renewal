@@ -59,6 +59,9 @@
                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">정상 수련</span>
                         {% elif member.status == 'suspended' %}
                         <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">수련 정지</span>
+                        {% if member.suspension_start_date and member.suspension_end_date %}
+                        <br><small class="text-muted d-block mt-2">{{ member.suspension_start_date }} ~ {{ member.suspension_end_date }}</small>
+                        {% endif %}
                         {% else %}
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">기간 만료</span>
                         {% endif %}

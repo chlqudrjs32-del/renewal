@@ -195,7 +195,16 @@ def edit_member(member_id):
             if not membership_start_date:
                 membership_start_date = datetime.now().strftime('%Y-%m-%d')
         
-        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch)
+        # 일시정지 기간 처리
+        suspension_start_date = request.form.get('suspension_start_date') or None
+        suspension_end_date = request.form.get('suspension_end_date') or None
+        
+        # status가 'suspended'가 아니면 일시정지 날짜 초기화
+        if status != 'suspended':
+            suspension_start_date = None
+            suspension_end_date = None
+        
+        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date)
         return redirect(url_for('member_detail', member_id=member_id))
     
     phone_middle, phone_last = split_phone(member['phone'])

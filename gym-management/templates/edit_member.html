@@ -76,11 +76,21 @@
 
             <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2">수련 상태 설정</label>
-                <select name="status" class="form-select form-select-lg rounded-3 border-2">
+                <select name="status" id="statusSelect" class="form-select form-select-lg rounded-3 border-2" onchange="toggleSuspensionFields()">
                     <option value="active" {% if member.status == 'active' %}selected{% endif %}>정상 수련 (Active)</option>
                     <option value="suspended" {% if member.status == 'suspended' %}selected{% endif %}>수련 정지 (Suspended)</option>
                     <option value="inactive" {% if member.status == 'inactive' %}selected{% endif %}>기간 만료 (Inactive)</option>
                 </select>
+            </div>
+
+            <div class="col-md-6" id="suspensionStartField" style="display: {% if member.status == 'suspended' %}block{% else %}none{% endif %};">
+                <label class="form-label fw-bold text-secondary mb-2">일시정지 시작일</label>
+                <input type="date" name="suspension_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_start_date or '' }}">
+            </div>
+
+            <div class="col-md-6" id="suspensionEndField" style="display: {% if member.status == 'suspended' %}block{% else %}none{% endif %};">
+                <label class="form-label fw-bold text-secondary mb-2">일시정지 종료일</label>
+                <input type="date" name="suspension_end_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.suspension_end_date or '' }}">
             </div>
 
             <div class="col-12">
@@ -128,6 +138,21 @@
         
         // [부서] 형태로 재조립하여 덮어쓰기
         memoArea.value = `[${selectedDivision}] ${pureMemo}`.trim();
+    }
+
+    // 수련 상태가 변경될 때 일시정지 기간 입력 필드 표시/숨김
+    function toggleSuspensionFields() {
+        const statusSelect = document.getElementById('statusSelect');
+        const suspensionStartField = document.getElementById('suspensionStartField');
+        const suspensionEndField = document.getElementById('suspensionEndField');
+        
+        if (statusSelect.value === 'suspended') {
+            suspensionStartField.style.display = 'block';
+            suspensionEndField.style.display = 'block';
+        } else {
+            suspensionStartField.style.display = 'none';
+            suspensionEndField.style.display = 'none';
+        }
     }
 </script>
 {% endblock %}

@@ -113,6 +113,10 @@ def init_database():
         cursor.execute('ALTER TABLE members ADD COLUMN parent_phone TEXT')
     if 'branch' not in member_columns:
         cursor.execute("ALTER TABLE members ADD COLUMN branch TEXT DEFAULT '태평동'")
+    if 'suspension_start_date' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN suspension_start_date TEXT')
+    if 'suspension_end_date' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN suspension_end_date TEXT')
 
     conn.commit()
     conn.close()
@@ -137,15 +141,25 @@ def get_database_status():
     }
 
 def update_expired_members():
-    """만료일이 지난 회원을 자동으로 'inactive' 상태 전환"""
+    """만료일이 지난 회원을 자동으로 'inactive' 상태 전환하고, 일시정지 기간이 끝난 회원을 'active'로 복구"""
     today = datetime.now().strftime('%Y-%m-%d')
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # 1. 만료일이 지난 회원을 'inactive'로 전환
     cursor.execute('''
         UPDATE members 
         SET status = 'inactive' 
         WHERE expiry_date < ? AND status = 'active'
     ''', (today,))
+    
+    # 2. 일시정지 기간이 끝난 회원을 'active'로 복구
+    cursor.execute('''
+        UPDATE members 
+        SET status = 'active' 
+        WHERE status = 'suspended' AND suspension_end_date IS NOT NULL AND suspension_end_date < ?
+    ''', (today,))
+    
     conn.commit()
     conn.close()
 
@@ -387,7 +401,7 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     conn.close()
     return member_id
 
-def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동'):
+def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동', suspension_start_date=None, suspension_end_date=None):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
     conn = get_db_connection()
@@ -395,9 +409,10 @@ def update_member(member_id, name, phone, birth_date, gender, membership_type, m
     cursor.execute('''
         UPDATE members 
         SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, branch = ?, membership_type = ?, 
-            membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+            membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, suspension_start_date = ?, 
+            suspension_end_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    ''', (name, phone, parent_phone, birth_date, gender, branch, membership_type, membership_start_date, expiry_date, memo, status, member_id))
+    ''', (name, phone, parent_phone, birth_date, gender, branch, membership_type, membership_start_date, expiry_date, memo, status, suspension_start_date, suspension_end_date, member_id))
     conn.commit()
     conn.close()
 
