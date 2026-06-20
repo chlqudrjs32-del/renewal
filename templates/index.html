@@ -100,35 +100,16 @@
             </div>
         </div>
     </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4"
-             onclick="location.href='/members?status=inactive';"
-             style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; cursor: pointer; transition: transform 0.2s;"
-             onmouseover="this.style.transform='scale(1.02)';"
-             onmouseout="this.style.transform='scale(1)';"
-             title="클릭하여 만료된 관원 명단 보기">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fs-6 fw-medium opacity-75">기간 만료 관원</span>
-                    <i class="bi bi-person-x-fill fs-3 opacity-50"></i>
-                </div>
-                <h2 class="fw-bold m-0 display-5">
-                    {{ stats.expired_members if stats.expired_members is defined else 0 }}<span class="fs-4 fw-normal"> 명</span>
-                </h2>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-4 mb-4">
+    <div class="col-lg-7 mb-4">
         <div class="premium-card h-100">
             <h4 class="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
                 <i class="bi bi-person-x-fill text-warning"></i> 집중 케어 대상 관원 (장기 미출석)
             </h4>
             <div class="table-responsive">
-                <table class="table premium-table table-hover align-middle" style="min-width: 400px;">
+                <table class="table premium-table table-hover align-middle">
                     <thead>
                         <tr>
                             <th>지점</th>
@@ -143,8 +124,8 @@
                             <tr>
                                 <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ member.branch or '태평동' }}</span></td>
                                 <td class="fw-bold"><a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a></td>
-                                <td class="text-secondary small">{{ member.phone }}</td>
-                                <td><span class="badge bg-light text-danger p-2 border border-danger-subtle small">{{ member.last_attendance if member.last_attendance else '기록 없음' }}</span></td>
+                                <td class="text-secondary">{{ member.phone }}</td>
+                                <td><span class="badge bg-light text-danger p-2 border border-danger-subtle">{{ member.last_attendance if member.last_attendance else '기록 없음' }}</span></td>
                             </tr>
                             {% endfor %}
                         {% else %}
@@ -158,43 +139,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4 mb-4">
-        <div class="premium-card h-100">
-            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
-                <i class="bi bi-person-dash-fill text-secondary"></i> 기간 만료 관원
-            </h4>
-            <div class="table-responsive">
-                <table class="table premium-table table-hover align-middle" style="min-width: 400px;">
-                    <thead>
-                        <tr>
-                            <th>지점</th>
-                            <th>이름</th>
-                            <th>연락처</th>
-                            <th>만료일</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if expired_members %}
-                            {% for member in expired_members %}
-                            <tr>
-                                <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ member.branch or '태평동' }}</span></td>
-                                <td class="fw-bold"><a href="/members/{{ member.id }}" class="text-decoration-none text-dark">{{ member.name }}</a></td>
-                                <td class="text-secondary small">{{ member.phone }}</td>
-                                <td><span class="badge bg-light text-secondary p-2 border border-secondary-subtle small">{{ member.expiry_date }}</span></td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center py-4 text-muted">기간 만료 관원이 없습니다.</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4 mb-4">
+    <div class="col-lg-5 mb-4">
         <div class="premium-card h-100">
             <h4 class="fw-bold mb-4 d-flex align-items-center gap-2 text-dark">
                 <i class="bi bi-calendar3-event-fill text-primary"></i> 오늘 예정된 타임 / 세션
