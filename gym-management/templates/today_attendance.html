@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}오늘 출석 - 체육관 회원관리{% endblock %}
+
+{% block content %}
+<div class="today-attendance-page">
+    <div class="page-header">
+        <h1>오늘 출석 ({{ members|length }}명)</h1>
+        <a href="{{ url_for('attendance') }}" class="btn btn-success">출석 관리</a>
+    </div>
+
+    <p class="subtitle">{{ today_date }} 출석 회원 목록</p>
+
+    {% if members %}
+    <div class="table-responsive">
+        <table class="members-table">
+        <thead>
+            <tr>
+                <th class="col-number">번호</th>
+                <th>이름</th>
+                <th>전화</th>
+                <th>입실 시간</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td class="col-number">{{ loop.index }}</td>
+                <td>{{ member.name }}</td>
+                <td>{{ member.phone or '-' }}</td>
+                <td>{{ member.check_in_time or '-' }}</td>
+                <td>
+                    <a href="{{ url_for('member_detail', member_id=member.id) }}" class="btn-small">상세</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="no-data">오늘 출석한 회원이 없습니다.</p>
+    {% endif %}
+
+    <div class="action-buttons">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">대시보드로</a>
+        <a href="{{ url_for('attendance_calendar') }}" class="btn btn-info">월별 달력 보기</a>
+    </div>
+</div>
+{% endblock %}
