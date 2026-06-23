@@ -36,7 +36,7 @@
                             {% endif %}
                         </span>
                     </td>
-                    <td class="text-muted small">{{ program.created_at[:10] }}</td>
+                    <td class="text-muted small">{{ program.created_at.strftime('%Y-%m-%d') if program.created_at else '-' }}</td>
                     <td>
                         <a href="/workout_programs/{{ program.id }}/edit" class="btn btn-sm btn-outline-primary me-1">
                             <i class="bi bi-pencil"></i>
