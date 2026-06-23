@@ -154,6 +154,11 @@
                         </a>
                     </li>
                     <li class="nav-item px-2">
+                        <a class="nav-link {% if request.path.startswith('/workout_programs') %}active fw-bold text-white{% endif %}" href="/workout_programs">
+                            <i class="bi bi-activity me-1"></i> 운동 프로그램
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
                         <a class="nav-link {% if request.path.startswith('/reports') %}active fw-bold text-white{% endif %}" href="/reports">
                             <i class="bi bi-graph-up-arrow me-1"></i> 분석 보고서
                         </a>

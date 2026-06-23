@@ -423,6 +423,50 @@ def delete_schedule_page(schedule_id):
     delete_schedule(schedule_id)
     return redirect(url_for('schedule'))
 
+# ============= 운동 프로그램 관리 =============
+
+@app.route('/workout_programs')
+def workout_programs():
+    programs = get_all_workout_programs()
+    return render_template('workout_programs.html', programs=programs)
+
+@app.route('/workout_programs/add', methods=['GET', 'POST'])
+def add_workout_program_page():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        min_attendance = int(request.form.get('min_attendance', 0))
+        max_attendance = request.form.get('max_attendance')
+        max_attendance = int(max_attendance) if max_attendance else None
+        
+        add_workout_program(name, description, min_attendance, max_attendance)
+        return redirect(url_for('workout_programs'))
+    
+    return render_template('add_workout_program.html')
+
+@app.route('/workout_programs/<int:program_id>/edit', methods=['GET', 'POST'])
+def edit_workout_program_page(program_id):
+    program = get_workout_program_by_id(program_id)
+    if not program:
+        return redirect(url_for('workout_programs'))
+    
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        min_attendance = int(request.form.get('min_attendance', 0))
+        max_attendance = request.form.get('max_attendance')
+        max_attendance = int(max_attendance) if max_attendance else None
+        
+        update_workout_program(program_id, name, description, min_attendance, max_attendance)
+        return redirect(url_for('workout_programs'))
+    
+    return render_template('edit_workout_program.html', program=program)
+
+@app.route('/workout_programs/<int:program_id>/delete', methods=['POST'])
+def delete_workout_program_page(program_id):
+    delete_workout_program(program_id)
+    return redirect(url_for('workout_programs'))
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404

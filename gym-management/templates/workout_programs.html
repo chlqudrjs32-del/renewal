@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+            <i class="bi bi-activity text-primary"></i> 운동 프로그램 관리
+        </h2>
+        <p class="m-0 mt-2 fs-6">출석 횟수별 운동 프로그램을 관리합니다.</p>
+    </div>
+    <a href="/workout_programs/add" class="btn btn-primary text-white"><i class="bi bi-plus-lg"></i> 새 프로그램 추가</a>
+</div>
+
+<div class="premium-card">
+    <div class="table-responsive">
+        <table class="table premium-table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>프로그램명</th>
+                    <th>설명</th>
+                    <th>적용 출석 횟수</th>
+                    <th>생성일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for program in programs %}
+                <tr>
+                    <td class="fw-bold text-dark">{{ program.name }}</td>
+                    <td class="text-muted">{{ program.description or '-' }}</td>
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                            {{ program.min_attendance }}회 이상
+                            {% if program.max_attendance %}
+                            ~ {{ program.max_attendance }}회
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="text-muted small">{{ program.created_at[:10] }}</td>
+                    <td>
+                        <a href="/workout_programs/{{ program.id }}/edit" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="/workout_programs/{{ program.id }}/delete" method="POST" class="d-inline" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">등록된 운동 프로그램이 없습니다.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
