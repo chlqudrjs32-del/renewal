@@ -131,6 +131,18 @@ def init_database():
     if 'suspension_end_date' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN suspension_end_date TEXT')
 
+    # 운동 프로그램 초기 데이터 추가 (테이블이 비어있을 때만)
+    cursor.execute('SELECT COUNT(*) as count FROM workout_programs')
+    program_count = cursor.fetchone()['count']
+    if program_count == 0:
+        cursor.execute('''
+            INSERT INTO workout_programs (name, description, min_attendance, max_attendance) VALUES
+            ('Basic Fitness', 'Basic physical fitness training program.', 0, 4),
+            ('Basic Skills', 'Basic kickboxing skills training program.', 5, 9),
+            ('Sparring Training', 'Sparring training for skill improvement.', 10, 19),
+            ('Advanced Skills', 'Advanced techniques and strategy training.', 20, NULL)
+        ''')
+
     conn.commit()
     conn.close()
 
