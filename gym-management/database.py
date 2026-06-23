@@ -98,6 +98,19 @@ def init_database():
         )
     ''')
     
+    # 운동 프로그램 테이블
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS workout_programs (
+            id {id_column},
+            name TEXT NOT NULL,
+            description TEXT,
+            min_attendance INTEGER DEFAULT 0,
+            max_attendance INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     if USE_POSTGRES:
         cursor.execute('''
             SELECT column_name
@@ -670,3 +683,73 @@ def get_expired_members_count(branch=None):
     result = cursor.fetchone()
     conn.close()
     return result['count'] if result else 0
+
+# ============= 운동 프로그램 관리 =============
+
+def get_all_workout_programs():
+    """모든 운동 프로그램 조회"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM workout_programs ORDER BY min_attendance ASC')
+    result = cursor.fetchall()
+    conn.close()
+    return result
+
+def get_workout_program_by_id(program_id):
+    """ID로 운동 프로그램 조회"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM workout_programs WHERE id = ?', (program_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
+def get_workout_program_by_attendance(attendance_count):
+    """출석 횟수에 맞는 운동 프로그램 조회"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM workout_programs
+        WHERE min_attendance <= ? AND (max_attendance IS NULL OR max_attendance >= ?)
+        ORDER BY min_attendance DESC
+        LIMIT 1
+    ''', (attendance_count, attendance_count))
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
+def add_workout_program(name, description, min_attendance, max_attendance=None):
+    """운동 프로그램 추가"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = '''
+        INSERT INTO workout_programs (name, description, min_attendance, max_attendance)
+        VALUES (?, ?, ?, ?)
+    '''
+    if USE_POSTGRES:
+        query += ' RETURNING id'
+    cursor.execute(query, (name, description, min_attendance, max_attendance))
+    program_id = cursor.fetchone()['id'] if USE_POSTGRES else cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return program_id
+
+def update_workout_program(program_id, name, description, min_attendance, max_attendance=None):
+    """운동 프로그램 수정"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE workout_programs
+        SET name = ?, description = ?, min_attendance = ?, max_attendance = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (name, description, min_attendance, max_attendance, program_id))
+    conn.commit()
+    conn.close()
+
+def delete_workout_program(program_id):
+    """운동 프로그램 삭제"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM workout_programs WHERE id = ?', (program_id,))
+    conn.commit()
+    conn.close()

@@ -9,7 +9,9 @@ from database import (
     get_member_attendance_by_month, get_all_attendance_by_month, get_day_attendance_members,
     get_attendance_map_for_range, toggle_attendance, clear_today_attendance, toggle_attendance_by_date,
     get_all_schedules, get_schedules_by_month, get_schedules_by_date, get_schedule_by_id,
-    add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count
+    add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
+    get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
+    add_workout_program, update_workout_program, delete_workout_program
 )
 from config import Config
 
@@ -172,10 +174,17 @@ def member_detail(member_id):
         
     attendance_records = get_attendance_records(member_id)
     today_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # 출석 횟수에 맞는 운동 프로그램 조회
+    attendance_count = member['total_attendance'] if member['total_attendance'] else 0
+    workout_program = get_workout_program_by_attendance(attendance_count)
+    
     return render_template('member_detail.html', 
                            member=member, 
                            attendance_records=attendance_records,
-                           today_date=today_date)
+                           today_date=today_date,
+                           workout_program=workout_program,
+                           attendance_count=attendance_count)
 
 @app.route('/members/<int:member_id>/edit', methods=['GET', 'POST'])
 def edit_member(member_id):

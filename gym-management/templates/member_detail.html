@@ -67,10 +67,33 @@
                         {% endif %}
                     </span>
                 </li>
+                <li class="list-group-item d-flex justify-content-between py-3 bg-transparent">
+                    <span class="text-secondary fw-medium">총 출석 횟수</span>
+                    <span class="fw-bold text-primary">{{ attendance_count }} 회</span>
+                </li>
             </ul>
         </div>
     </div>
 
+    <div class="col-lg-7 mb-4">
+        <div class="premium-card h-100">
+            <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-activity text-primary me-1"></i> 현재 운동 프로그램</h4>
+            {% if workout_program %}
+            <div class="p-4 rounded-4 bg-primary-subtle border border-primary-subtle">
+                <h5 class="fw-bold text-primary mb-2">{{ workout_program.name }}</h5>
+                <p class="text-muted mb-0">{{ workout_program.description or '상세 설명 없음' }}</p>
+                <small class="text-muted d-block mt-2">적용 출석 횟수: {{ workout_program.min_attendance }}회 이상</small>
+            </div>
+            {% else %}
+            <div class="p-4 rounded-4 bg-light border">
+                <p class="text-muted mb-0">현재 출석 횟수에 맞는 운동 프로그램이 없습니다.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-lg-7 mb-4">
         <div class="premium-card h-100">
             <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-sticky-fill text-warning me-1"></i> 관원 특이사항 / 종합 메모</h4>
