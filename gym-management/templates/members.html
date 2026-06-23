@@ -72,6 +72,7 @@
                     <th>휴대폰 번호</th>
                     <th>회원권 종류</th>
                     <th>보유 만료일</th>
+                    <th>관비 금액</th>
                     <th>출석 횟수</th>
                     <th>현재 상태</th>
                     <th class="text-center">매니지먼트</th>
@@ -98,6 +99,11 @@
                     </td>
                     <td><span class="fw-semibold text-dark">{{ m.expiry_date }}</span></td>
                     <td>
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle fw-bold px-2.5 py-1.5">
+                            {{ "{:,}".format(m.monthly_fee or 0) }}원
+                        </span>
+                    </td>
+                    <td>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1.5">
                             {{ m.total_attendance or 0 }}회
                         </span>
@@ -121,7 +127,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">등록된 관원이 없습니다.</td>
+                    <td colspan="10" class="text-center py-5 text-muted">등록된 관원이 없습니다.</td>
                 </tr>
                 {% endfor %}
             </tbody>

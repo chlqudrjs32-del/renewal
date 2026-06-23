@@ -70,6 +70,11 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-currency-won me-1"></i> 관비 금액 (월)</label>
+                <input type="number" name="monthly_fee" class="form-control form-control-lg rounded-3 border-2" placeholder="0" min="0" value="{{ member.monthly_fee or 0 }}">
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2">회원권 시작일</label>
                 <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.membership_start_date }}" required>
             </div>
