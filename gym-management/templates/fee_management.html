@@ -110,7 +110,7 @@
                     <td>{{ member.payment_date or '-' }}</td>
                     <td>
                         {% if member.payment_status == 'paid' %}
-                        <form action="/fee_management/{{ member.payment_id }}/unpaid" method="POST" class="d-inline" onsubmit="return confirm('납부를 취소하시겠습니까?');">
+                        <form action="/fee_management/{{ member.id }}/unpaid" method="POST" class="d-inline" onsubmit="return confirm('납부를 취소하시겠습니까?');">
                             <input type="hidden" name="year" value="{{ current_year }}">
                             <input type="hidden" name="month" value="{{ current_month }}">
                             <input type="hidden" name="branch" value="{{ current_branch }}">

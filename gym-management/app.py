@@ -536,11 +536,16 @@ def mark_fee_paid(member_id):
     status = request.form.get('status', 'all')
     return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
 
-@app.route('/fee_management/<int:payment_id>/unpaid', methods=['POST'])
-def mark_fee_unpaid(payment_id):
-    mark_fee_as_unpaid(payment_id)
+@app.route('/fee_management/<int:member_id>/unpaid', methods=['POST'])
+def mark_fee_unpaid(member_id):
     year = int(request.form.get('year', datetime.now().year))
     month = int(request.form.get('month', datetime.now().month))
+    
+    # 납부 레코드 확인
+    payment = get_fee_payment_by_member_month(member_id, year, month)
+    if payment:
+        mark_fee_as_unpaid(payment['id'])
+    
     branch = request.form.get('branch', 'all')
     status = request.form.get('status', 'all')
     return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
