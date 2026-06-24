@@ -12,7 +12,7 @@ from database import (
     add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
     get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
     add_workout_program, update_workout_program, delete_workout_program,
-    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid
+    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid, extend_member_expiry
 )
 from config import Config
 
@@ -519,6 +519,7 @@ def generate_fee_payments():
 def mark_fee_paid(member_id):
     year = int(request.form.get('year', datetime.now().year))
     month = int(request.form.get('month', datetime.now().month))
+    extend_months = int(request.form.get('extend_months', 3))
     
     # 납부 레코드 확인 및 생성
     payment = get_fee_payment_by_member_month(member_id, year, month)
@@ -531,6 +532,8 @@ def mark_fee_paid(member_id):
     
     if payment_id:
         mark_fee_as_paid(payment_id)
+        # 회원권 만료일 연장
+        extend_member_expiry(member_id, extend_months)
     
     branch = request.form.get('branch', 'all')
     status = request.form.get('status', 'all')

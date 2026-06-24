@@ -858,7 +858,7 @@ def get_fee_payments_by_month(year, month, status=None, branch=None):
         cursor = conn.cursor()
         
         query = '''
-            SELECT m.*, fp.id as payment_id, fp.payment_date, fp.status as payment_status, fp.amount as payment_amount
+            SELECT m.*, fp.id as payment_id, fp.payment_date, fp.status as payment_status, fp.amount as payment_amount, m.expiry_date
             FROM members m
             LEFT JOIN fee_payment fp ON m.id = fp.member_id AND fp.payment_year = ? AND fp.payment_month = ?
             WHERE m.status = 'active'
@@ -958,3 +958,28 @@ def mark_fee_as_unpaid(payment_id):
         conn.close()
     except Exception as e:
         print(f"Warning: Failed to mark fee as unpaid: {e}")
+
+def extend_member_expiry(member_id, extend_months):
+    """회원권 만료일 연장"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 현재 만료일 조회
+        cursor.execute('SELECT expiry_date FROM members WHERE id = ?', (member_id,))
+        result = cursor.fetchone()
+        
+        if result and result['expiry_date']:
+            current_expiry = datetime.strptime(result['expiry_date'], '%Y-%m-%d')
+            # 현재 만료일이 이미 지난 경우 오늘부터, 아니면 만료일부터 연장
+            today = datetime.now()
+            base_date = max(current_expiry, today)
+            new_expiry = (base_date + timedelta(days=extend_months * 30)).strftime('%Y-%m-%d')
+            
+            cursor.execute('UPDATE members SET expiry_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                         (new_expiry, member_id))
+            conn.commit()
+        
+        conn.close()
+    except Exception as e:
+        print(f"Warning: Failed to extend member expiry: {e}")
