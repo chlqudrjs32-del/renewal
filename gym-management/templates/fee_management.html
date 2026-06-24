@@ -118,7 +118,7 @@
                             <button type="submit" class="btn btn-sm btn-outline-danger">취소</button>
                         </form>
                         {% else %}
-                        <form action="/fee_management/{{ member.payment_id }}/paid" method="POST" class="d-inline">
+                        <form action="/fee_management/{{ member.id }}/paid" method="POST" class="d-inline">
                             <input type="hidden" name="year" value="{{ current_year }}">
                             <input type="hidden" name="month" value="{{ current_month }}">
                             <input type="hidden" name="branch" value="{{ current_branch }}">

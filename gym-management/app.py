@@ -12,7 +12,7 @@ from database import (
     add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
     get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
     add_workout_program, update_workout_program, delete_workout_program,
-    get_fee_payments_by_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid
+    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid
 )
 from config import Config
 
@@ -515,11 +515,23 @@ def generate_fee_payments():
     
     return redirect(url_for('fee_management', year=year, month=month))
 
-@app.route('/fee_management/<int:payment_id>/paid', methods=['POST'])
-def mark_fee_paid(payment_id):
-    mark_fee_as_paid(payment_id)
+@app.route('/fee_management/<int:member_id>/paid', methods=['POST'])
+def mark_fee_paid(member_id):
     year = int(request.form.get('year', datetime.now().year))
     month = int(request.form.get('month', datetime.now().month))
+    
+    # 납부 레코드 확인 및 생성
+    payment = get_fee_payment_by_member_month(member_id, year, month)
+    if not payment:
+        member = get_member_by_id(member_id)
+        amount = member.get('monthly_fee', 0) or 0
+        payment_id = create_fee_payment(member_id, year, month, amount)
+    else:
+        payment_id = payment['id']
+    
+    if payment_id:
+        mark_fee_as_paid(payment_id)
+    
     branch = request.form.get('branch', 'all')
     status = request.form.get('status', 'all')
     return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
