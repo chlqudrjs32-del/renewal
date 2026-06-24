@@ -110,6 +110,22 @@ def init_database():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # 관비 납부 테이블
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS fee_payment (
+            id {id_column},
+            member_id INTEGER NOT NULL,
+            payment_year INTEGER NOT NULL,
+            payment_month INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            payment_date TEXT,
+            status TEXT DEFAULT 'unpaid',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (member_id) REFERENCES members(id)
+        )
+    ''')
     
     if USE_POSTGRES:
         cursor.execute('''
@@ -832,3 +848,113 @@ def delete_workout_program(program_id):
         conn.close()
     except Exception as e:
         print(f"Warning: Failed to delete workout program: {e}")
+
+# ============= 관비 납부 관리 =============
+
+def get_fee_payments_by_month(year, month, status=None, branch=None):
+    """특정 월의 관비 납부 현황 조회"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = '''
+            SELECT m.*, fp.id as payment_id, fp.payment_date, fp.status as payment_status, fp.amount as payment_amount
+            FROM members m
+            LEFT JOIN fee_payment fp ON m.id = fp.member_id AND fp.payment_year = ? AND fp.payment_month = ?
+            WHERE m.status = 'active'
+        '''
+        params = [year, month]
+        
+        if branch in ['태평동', '복수동']:
+            query += ' AND m.branch = ?'
+            params.append(branch)
+        
+        if status:
+            query += ' AND fp.status = ?'
+            params.append(status)
+        
+        query += ' ORDER BY m.name ASC'
+        
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    except Exception as e:
+        print(f"Warning: Failed to get fee payments: {e}")
+        return []
+
+def get_fee_payment_by_member_month(member_id, year, month):
+    """특정 회원의 특정 월 납부 상태 조회"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM fee_payment
+            WHERE member_id = ? AND payment_year = ? AND payment_month = ?
+        ''', (member_id, year, month))
+        result = cursor.fetchone()
+        conn.close()
+        return result
+    except Exception as e:
+        print(f"Warning: Failed to get fee payment by member month: {e}")
+        return None
+
+def create_fee_payment(member_id, year, month, amount):
+    """관비 납부 레코드 생성"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 이미 존재하는지 확인
+        existing = get_fee_payment_by_member_month(member_id, year, month)
+        if existing:
+            conn.close()
+            return existing['id']
+        
+        query = '''
+            INSERT INTO fee_payment (member_id, payment_year, payment_month, amount, status)
+            VALUES (?, ?, ?, ?, 'unpaid')
+        '''
+        if USE_POSTGRES:
+            query += ' RETURNING id'
+        cursor.execute(query, (member_id, year, month, amount))
+        payment_id = cursor.fetchone()['id'] if USE_POSTGRES else cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return payment_id
+    except Exception as e:
+        print(f"Warning: Failed to create fee payment: {e}")
+        return None
+
+def mark_fee_as_paid(payment_id, payment_date=None):
+    """관비 납부 완료 처리"""
+    try:
+        if not payment_date:
+            payment_date = datetime.now().strftime('%Y-%m-%d')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE fee_payment
+            SET status = 'paid', payment_date = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (payment_date, payment_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Warning: Failed to mark fee as paid: {e}")
+
+def mark_fee_as_unpaid(payment_id):
+    """관비 납부 취소 처리"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE fee_payment
+            SET status = 'unpaid', payment_date = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (payment_id,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Warning: Failed to mark fee as unpaid: {e}")

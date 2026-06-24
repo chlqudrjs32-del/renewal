@@ -11,7 +11,8 @@ from database import (
     get_all_schedules, get_schedules_by_month, get_schedules_by_date, get_schedule_by_id,
     add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
     get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
-    add_workout_program, update_workout_program, delete_workout_program
+    add_workout_program, update_workout_program, delete_workout_program,
+    get_fee_payments_by_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid
 )
 from config import Config
 
@@ -469,6 +470,68 @@ def edit_workout_program_page(program_id):
 def delete_workout_program_page(program_id):
     delete_workout_program(program_id)
     return redirect(url_for('workout_programs'))
+
+# ============= 관비 납부 관리 =============
+
+@app.route('/fee_management')
+def fee_management():
+    year = int(request.args.get('year', datetime.now().year))
+    month = int(request.args.get('month', datetime.now().month))
+    branch = request.args.get('branch', 'all')
+    status = request.args.get('status', 'all')
+    
+    branch_filter = branch if branch in BRANCHES else None
+    status_filter = status if status in ['paid', 'unpaid'] else None
+    
+    members = get_fee_payments_by_month(year, month, status_filter, branch_filter)
+    
+    # 통계 계산
+    total_count = len(members)
+    paid_count = len([m for m in members if m['payment_status'] == 'paid'])
+    unpaid_count = len([m for m in members if m['payment_status'] != 'paid'])
+    
+    return render_template('fee_management.html',
+                           members=members,
+                           current_year=year,
+                           current_month=month,
+                           current_branch=branch,
+                           current_status=status,
+                           branches=BRANCHES,
+                           total_count=total_count,
+                           paid_count=paid_count,
+                           unpaid_count=unpaid_count)
+
+@app.route('/fee_management/generate')
+def generate_fee_payments():
+    year = int(request.args.get('year', datetime.now().year))
+    month = int(request.args.get('month', datetime.now().month))
+    
+    # 모든 활성 회원에 대해 납부 대상 생성
+    active_members = get_members_by_status('active', None, None)
+    for member in active_members:
+        amount = member.get('monthly_fee', 0) or 0
+        if amount > 0:
+            create_fee_payment(member['id'], year, month, amount)
+    
+    return redirect(url_for('fee_management', year=year, month=month))
+
+@app.route('/fee_management/<int:payment_id>/paid', methods=['POST'])
+def mark_fee_paid(payment_id):
+    mark_fee_as_paid(payment_id)
+    year = int(request.form.get('year', datetime.now().year))
+    month = int(request.form.get('month', datetime.now().month))
+    branch = request.form.get('branch', 'all')
+    status = request.form.get('status', 'all')
+    return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
+
+@app.route('/fee_management/<int:payment_id>/unpaid', methods=['POST'])
+def mark_fee_unpaid(payment_id):
+    mark_fee_as_unpaid(payment_id)
+    year = int(request.form.get('year', datetime.now().year))
+    month = int(request.form.get('month', datetime.now().month))
+    branch = request.form.get('branch', 'all')
+    status = request.form.get('status', 'all')
+    return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
 
 @app.errorhandler(404)
 def not_found_error(error):
