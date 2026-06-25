@@ -520,18 +520,22 @@ def mark_fee_paid(member_id):
     year = int(request.form.get('year', datetime.now().year))
     month = int(request.form.get('month', datetime.now().month))
     extend_months = int(request.form.get('extend_months', 3))
+    payment_amount = int(request.form.get('payment_amount', 0)) if request.form.get('payment_amount') else 0
     
     # 납부 레코드 확인 및 생성
     payment = get_fee_payment_by_member_month(member_id, year, month)
     if not payment:
         member = get_member_by_id(member_id)
-        amount = member.get('monthly_fee', 0) or 0
+        amount = payment_amount if payment_amount > 0 else (member.get('monthly_fee', 0) or 0)
         payment_id = create_fee_payment(member_id, year, month, amount)
     else:
         payment_id = payment['id']
+        if payment_amount > 0:
+            mark_fee_as_paid(payment_id, amount=payment_amount)
     
     if payment_id:
-        mark_fee_as_paid(payment_id)
+        if payment_amount == 0:
+            mark_fee_as_paid(payment_id)
         # 회원권 만료일 연장
         extend_member_expiry(member_id, extend_months)
     

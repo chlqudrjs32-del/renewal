@@ -926,7 +926,7 @@ def create_fee_payment(member_id, year, month, amount):
         print(f"Warning: Failed to create fee payment: {e}")
         return None
 
-def mark_fee_as_paid(payment_id, payment_date=None):
+def mark_fee_as_paid(payment_id, payment_date=None, amount=None):
     """관비 납부 완료 처리"""
     try:
         if not payment_date:
@@ -934,11 +934,20 @@ def mark_fee_as_paid(payment_id, payment_date=None):
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE fee_payment
-            SET status = 'paid', payment_date = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ''', (payment_date, payment_id))
+        
+        if amount:
+            cursor.execute('''
+                UPDATE fee_payment
+                SET status = 'paid', payment_date = ?, amount = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (payment_date, amount, payment_id))
+        else:
+            cursor.execute('''
+                UPDATE fee_payment
+                SET status = 'paid', payment_date = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (payment_date, payment_id))
+        
         conn.commit()
         conn.close()
     except Exception as e:
