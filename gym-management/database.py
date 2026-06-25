@@ -985,8 +985,8 @@ def mark_fee_as_unpaid(payment_id):
     except Exception as e:
         print(f"Warning: Failed to mark fee as unpaid: {e}")
 
-def extend_member_expiry(member_id, extend_months):
-    """회원권 만료일 연장"""
+def extend_member_expiry(member_id, extend_months, payment_date=None):
+    """회원권 만료일 연장 (결제 날짜 기준으로 일자 유지)"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -995,16 +995,37 @@ def extend_member_expiry(member_id, extend_months):
         cursor.execute('SELECT expiry_date FROM members WHERE id = ?', (member_id,))
         result = cursor.fetchone()
         
+        if payment_date:
+            payment_dt = datetime.strptime(payment_date, '%Y-%m-%d')
+        else:
+            payment_dt = datetime.now()
+        
         if result and result['expiry_date']:
             current_expiry = datetime.strptime(result['expiry_date'], '%Y-%m-%d')
-            # 현재 만료일이 이미 지난 경우 오늘부터, 아니면 만료일부터 연장
-            today = datetime.now()
-            base_date = max(current_expiry, today)
-            new_expiry = (base_date + timedelta(days=extend_months * 30)).strftime('%Y-%m-%d')
-            
-            cursor.execute('UPDATE members SET expiry_date = ?, membership_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
-                         (new_expiry, extend_months, member_id))
-            conn.commit()
+            # 현재 만료일이 이미 지난 경우 결제일부터, 아니면 만료일부터 연장
+            base_date = max(current_expiry, payment_dt)
+        else:
+            base_date = payment_dt
+        
+        # 결제 날짜의 일자를 유지하면서 개월수만큼 더하기
+        new_expiry_date = base_date
+        for _ in range(extend_months):
+            # 다음 달의 같은 날짜 계산 (말일 처리 포함)
+            year = new_expiry_date.year
+            month = new_expiry_date.month + 1
+            if month > 12:
+                year += 1
+                month = 1
+            # 해당 월의 마지막 날 계산
+            last_day_of_month = (datetime(year, month + 1, 1) - timedelta(days=1)).day if month < 12 else (datetime(year + 1, 1, 1) - timedelta(days=1)).day
+            day = min(base_date.day, last_day_of_month)
+            new_expiry_date = datetime(year, month, day)
+        
+        new_expiry = new_expiry_date.strftime('%Y-%m-%d')
+        
+        cursor.execute('UPDATE members SET expiry_date = ?, membership_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                     (new_expiry, extend_months, member_id))
+        conn.commit()
         
         conn.close()
     except Exception as e:

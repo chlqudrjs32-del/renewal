@@ -165,6 +165,12 @@ def add_member_page():
         registration_source = request.form.get('registration_source')
         exercise_purpose = request.form.get('exercise_purpose')
         
+        # 기타 직접 입력 처리
+        if registration_source == '기타':
+            registration_source = request.form.get('registration_source_other')
+        if exercise_purpose == '기타':
+            exercise_purpose = request.form.get('exercise_purpose_other')
+        
         add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee, registration_source, exercise_purpose)
         return redirect(url_for('members', branch=branch))
     
@@ -230,6 +236,12 @@ def edit_member(member_id):
         monthly_fee = int(request.form.get('monthly_fee', 0)) if request.form.get('monthly_fee') else 0
         registration_source = request.form.get('registration_source')
         exercise_purpose = request.form.get('exercise_purpose')
+        
+        # 기타 직접 입력 처리
+        if registration_source == '기타':
+            registration_source = request.form.get('registration_source_other')
+        if exercise_purpose == '기타':
+            exercise_purpose = request.form.get('exercise_purpose_other')
         
         update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose)
         return redirect(url_for('member_detail', member_id=member_id))
@@ -551,8 +563,9 @@ def mark_fee_paid(member_id):
             conn.commit()
             conn.close()
         
-        # 회원권 만료일 연장
-        extend_member_expiry(member_id, extend_months)
+        # 회원권 만료일 연장 (결제 날짜 기준)
+        payment_date = datetime.now().strftime('%Y-%m-%d')
+        extend_member_expiry(member_id, extend_months, payment_date)
     
     branch = request.form.get('branch', 'all')
     status = request.form.get('status', 'all')
