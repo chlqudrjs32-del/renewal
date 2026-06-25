@@ -12,7 +12,7 @@ from database import (
     add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
     get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
     add_workout_program, update_workout_program, delete_workout_program,
-    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid, extend_member_expiry
+    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid, extend_member_expiry, get_db_connection
 )
 from config import Config
 
@@ -530,12 +530,23 @@ def mark_fee_paid(member_id):
         payment_id = create_fee_payment(member_id, year, month, amount)
     else:
         payment_id = payment['id']
+    
+    # 결제 금액 업데이트 (입력된 금액이 있으면 해당 금액으로)
+    if payment_id:
         if payment_amount > 0:
             mark_fee_as_paid(payment_id, amount=payment_amount)
-    
-    if payment_id:
-        if payment_amount == 0:
+        else:
             mark_fee_as_paid(payment_id)
+        
+        # 회원의 monthly_fee 업데이트 (입력된 금액이 있으면 해당 금액으로)
+        if payment_amount > 0:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('UPDATE members SET monthly_fee = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                         (payment_amount, member_id))
+            conn.commit()
+            conn.close()
+        
         # 회원권 만료일 연장
         extend_member_expiry(member_id, extend_months)
     
