@@ -166,12 +166,6 @@ def add_member_page():
         payment_day = int(request.form.get('payment_day')) if request.form.get('payment_day') else None
         payment_status = request.form.get('payment_status', 'unpaid')
         
-        # 기타 직접 입력 처리
-        if registration_source == '기타':
-            registration_source = request.form.get('registration_source_other')
-        if exercise_purpose == '기타':
-            exercise_purpose = request.form.get('exercise_purpose_other')
-        
         add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee, registration_source, exercise_purpose, payment_day, payment_status)
         return redirect(url_for('members', branch=branch))
     
@@ -239,12 +233,6 @@ def edit_member(member_id):
         exercise_purpose = request.form.get('exercise_purpose')
         payment_day = int(request.form.get('payment_day')) if request.form.get('payment_day') else None
         payment_status = request.form.get('payment_status')
-        
-        # 기타 직접 입력 처리
-        if registration_source == '기타':
-            registration_source = request.form.get('registration_source_other')
-        if exercise_purpose == '기타':
-            exercise_purpose = request.form.get('exercise_purpose_other')
         
         update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose, payment_day, payment_status)
         return redirect(url_for('member_detail', member_id=member_id))

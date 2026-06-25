@@ -76,32 +76,12 @@
 
             <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-signpost me-1"></i> 등록 경로</label>
-                <select name="registration_source" class="form-select form-select-lg rounded-3 border-2" style="font-size: 16px;" onchange="toggleOtherInput(this, 'registration_source_other')">
-                    <option value="">선택하세요</option>
-                    <option value="지인소개">지인 소개</option>
-                    <option value="인터넷검색">인터넷 검색</option>
-                    <option value="SNS">SNS</option>
-                    <option value="현간판">현간판</option>
-                    <option value="현수막">현수막</option>
-                    <option value="전단지">전단지</option>
-                    <option value="기타">기타 (직접 입력)</option>
-                </select>
-                <input type="text" name="registration_source_other" class="form-control form-control-lg rounded-3 border-2 mt-2" style="font-size: 16px; display: none;" placeholder="직접 입력하세요">
+                <input type="text" name="registration_source" class="form-control form-control-lg rounded-3 border-2" placeholder="직접 입력하세요" style="font-size: 16px;">
             </div>
 
             <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-bullseye me-1"></i> 운동 목적</label>
-                <select name="exercise_purpose" class="form-select form-select-lg rounded-3 border-2" style="font-size: 16px;" onchange="toggleOtherInput(this, 'exercise_purpose_other')">
-                    <option value="">선택하세요</option>
-                    <option value="체력증진">체력 증진</option>
-                    <option value="다이어트">다이어트</option>
-                    <option value="근력증가">근력 증가</option>
-                    <option value="스트레스해소">스트레스 해소</option>
-                    <option value="건강관리">건강 관리</option>
-                    <option value="재활운동">재활 운동</option>
-                    <option value="기타">기타 (직접 입력)</option>
-                </select>
-                <input type="text" name="exercise_purpose_other" class="form-control form-control-lg rounded-3 border-2 mt-2" style="font-size: 16px; display: none;" placeholder="직접 입력하세요">
+                <input type="text" name="exercise_purpose" class="form-control form-control-lg rounded-3 border-2" placeholder="직접 입력하세요" style="font-size: 16px;">
             </div>
 
             <div class="col-md-6">
@@ -144,18 +124,4 @@
         </div>
     </form>
 </div>
-
-<script>
-function toggleOtherInput(selectElement, otherInputId) {
-    const otherInput = document.querySelector(`[name="${otherInputId}"]`);
-    if (selectElement.value === '기타') {
-        otherInput.style.display = 'block';
-        otherInput.required = true;
-    } else {
-        otherInput.style.display = 'none';
-        otherInput.required = false;
-        otherInput.value = '';
-    }
-}
-</script>
 {% endblock %}
