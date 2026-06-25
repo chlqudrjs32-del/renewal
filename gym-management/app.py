@@ -130,6 +130,8 @@ def members():
     status = request.args.get('status', 'active')
     search_query = request.args.get('search', '').strip() or None
     branch = request.args.get('branch', 'all')
+    year = int(request.args.get('year', datetime.now().year))
+    month = int(request.args.get('month', datetime.now().month))
     branch_filter = branch if branch in BRANCHES else None
     
     if status in ['active', 'suspended', 'inactive']:
@@ -145,6 +147,8 @@ def members():
                            current_status=status,
                            search_query=search_query or '',
                            current_branch=branch_filter or 'all',
+                           current_year=year,
+                           current_month=month,
                            branches=BRANCHES)
 
 @app.route('/members/add', methods=['GET', 'POST'])
@@ -291,11 +295,12 @@ def update_member_field(member_id):
 def attendance():
     """출석 타임라인 테이블 뷰 (주말 토, 일 완벽 제거)"""
     branch = request.args.get('branch', 'all')
+    year = int(request.args.get('year', datetime.now().year))
+    month = int(request.args.get('month', datetime.now().month))
     branch_filter = branch if branch in BRANCHES else None
     today = datetime.now().date()
     weekday_names = ['월', '화', '수', '목', '금', '토', '일']
 
-    year, month = today.year, today.month
     first_day = datetime(year, month, 1).date()
     last_day = datetime(year + 1, 1, 1).date() - timedelta(days=1) if month == 12 else datetime(year, month + 1, 1).date() - timedelta(days=1)
     
@@ -342,6 +347,8 @@ def attendance():
                            absent_flags=absent_flags,
                            today_date=today.strftime('%Y-%m-%d'),
                            current_branch=branch_filter or 'all',
+                           current_year=year,
+                           current_month=month,
                            branches=BRANCHES)
 
 @app.route('/attendance/today')

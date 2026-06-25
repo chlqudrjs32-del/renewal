@@ -39,13 +39,27 @@
         <div class="col-12 mt-2">
             <form method="GET" action="/members" class="row g-3 align-items-center">
                 <input type="hidden" name="branch" value="{{ current_branch }}">
-                <div class="col-lg-6">
+                <div class="col-lg-3">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="관원 이름 또는 전화번호 검색" value="{{ search_query or '' }}">
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-2">
+                    <select name="year" class="form-select bg-light">
+                        {% for y in range(2023, datetime.now().year + 2) %}
+                        <option value="{{ y }}" {% if current_year == y %}selected{% endif %}>{{ y }}년</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <select name="month" class="form-select bg-light">
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if current_month == m %}selected{% endif %}>{{ m }}월</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-2">
                     <select name="status" class="form-select bg-light">
                         <option value="all" {% if current_status == 'all' %}selected{% endif %}>모든 수련 상태 (전체)</option>
                         <option value="active" {% if current_status == 'active' %}selected{% endif %}>정상 수련 관원</option>
@@ -53,7 +67,7 @@
                         <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>기간 만료 관원</option>
                     </select>
                 </div>
-                <div class="col-lg-2">
+                <div class="col-lg-3">
                     <button type="submit" class="btn btn-dark w-100 fw-bold"><i class="bi bi-search me-1"></i> 조건 검색</button>
                 </div>
             </form>
