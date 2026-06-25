@@ -149,6 +149,7 @@ def members():
                            current_branch=branch_filter or 'all',
                            current_year=year,
                            current_month=month,
+                           datetime=datetime,
                            branches=BRANCHES)
 
 @app.route('/members/add', methods=['GET', 'POST'])
@@ -349,6 +350,7 @@ def attendance():
                            current_branch=branch_filter or 'all',
                            current_year=year,
                            current_month=month,
+                           datetime=datetime,
                            branches=BRANCHES)
 
 @app.route('/attendance/today')
