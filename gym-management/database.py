@@ -504,11 +504,24 @@ def update_member(member_id, name, phone, birth_date, gender, membership_type, m
     conn.close()
 
 def delete_member(member_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM members WHERE id = ?', (member_id,))
-    conn.commit()
-    conn.close()
+    """회원 삭제 (관련 데이터 먼저 삭제)"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 관련 데이터 먼저 삭제 (외래 키 제약 조건)
+        cursor.execute('DELETE FROM attendance WHERE member_id = ?', (member_id,))
+        cursor.execute('DELETE FROM fee_payment WHERE member_id = ?', (member_id,))
+        
+        # 회원 삭제
+        cursor.execute('DELETE FROM members WHERE id = ?', (member_id,))
+        
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error deleting member: {e}")
+        conn.close()
+        raise
 
 def get_attendance_map_for_range(start_date, end_date):
     conn = get_db_connection()
