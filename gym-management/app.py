@@ -260,15 +260,26 @@ def update_member_field(member_id):
         cursor = conn.cursor()
         
         # 허용된 필드만 업데이트
-        allowed_fields = ['payment_day', 'payment_status', 'registration_source', 'exercise_purpose']
+        allowed_fields = ['payment_day', 'payment_status', 'registration_source', 'exercise_purpose', 'other_info']
         if field not in allowed_fields:
             return jsonify({'success': False, 'error': '허용되지 않은 필드입니다'}), 400
         
-        # payment_day의 경우 숫자로 변환
-        if field == 'payment_day':
-            value = int(value) if value else None
+        # other_info의 경우 등록경로, 운동목적 분리 처리
+        if field == 'other_info':
+            import json
+            other_data = json.loads(value)
+            registration_source = other_data.get('registration_source', '')
+            exercise_purpose = other_data.get('exercise_purpose', '')
+            
+            cursor.execute('UPDATE members SET registration_source = ?, exercise_purpose = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                         (registration_source, exercise_purpose, member_id))
+        else:
+            # payment_day의 경우 숫자로 변환
+            if field == 'payment_day':
+                value = int(value) if value else None
+            
+            cursor.execute(f'UPDATE members SET {field} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (value, member_id))
         
-        cursor.execute(f'UPDATE members SET {field} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (value, member_id))
         conn.commit()
         conn.close()
         

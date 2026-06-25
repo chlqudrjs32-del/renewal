@@ -75,8 +75,7 @@
                     <th>관비 금액</th>
                     <th>관비 납부일</th>
                     <th>납부 여부</th>
-                    <th>등록 경로</th>
-                    <th>운동 목적</th>
+                    <th>기타</th>
                     <th>출석 횟수</th>
                     <th>현재 상태</th>
                     <th class="text-center">매니지먼트</th>
@@ -117,10 +116,7 @@
                         </select>
                     </td>
                     <td>
-                        <input type="text" class="form-control form-control-sm" value="{{ m.registration_source or '' }}" placeholder="-" onchange="updateMemberField({{ m.id }}, 'registration_source', this.value)">
-                    </td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm" value="{{ m.exercise_purpose or '' }}" placeholder="-" onchange="updateMemberField({{ m.id }}, 'exercise_purpose', this.value)">
+                        <input type="text" class="form-control form-control-sm" value="{{ (m.registration_source or '') + (', ' + m.exercise_purpose if m.registration_source and m.exercise_purpose else (m.exercise_purpose or '')) }}" placeholder="-" onchange="updateOtherInfo({{ m.id }}, this.value)">
                     </td>
                     <td>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1.5">
@@ -219,6 +215,39 @@
             body: JSON.stringify({
                 field: field,
                 value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('업데이트 성공');
+            } else {
+                alert('업데이트 실패: ' + (data.error || '알 수 없는 오류'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('업데이트 중 오류가 발생했습니다.');
+        });
+    }
+
+    // 기타 정보 업데이트 함수 (등록경로, 운동목적 분리)
+    function updateOtherInfo(memberId, value) {
+        const parts = value.split(',').map(s => s.trim());
+        const registrationSource = parts[0] || '';
+        const exercisePurpose = parts[1] || '';
+        
+        fetch(`/members/${memberId}/update_field`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                field: 'other_info',
+                value: JSON.stringify({
+                    registration_source: registrationSource,
+                    exercise_purpose: exercisePurpose
+                })
             })
         })
         .then(response => response.json())
