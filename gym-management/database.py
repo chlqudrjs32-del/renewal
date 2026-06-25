@@ -976,8 +976,8 @@ def extend_member_expiry(member_id, extend_months):
             base_date = max(current_expiry, today)
             new_expiry = (base_date + timedelta(days=extend_months * 30)).strftime('%Y-%m-%d')
             
-            cursor.execute('UPDATE members SET expiry_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
-                         (new_expiry, member_id))
+            cursor.execute('UPDATE members SET expiry_date = ?, membership_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                         (new_expiry, extend_months, member_id))
             conn.commit()
         
         conn.close()
