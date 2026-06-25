@@ -73,6 +73,10 @@
                     <th>회원권 종류</th>
                     <th>보유 만료일</th>
                     <th>관비 금액</th>
+                    <th>관비 납부일</th>
+                    <th>납부 여부</th>
+                    <th>등록 경로</th>
+                    <th>운동 목적</th>
                     <th>출석 횟수</th>
                     <th>현재 상태</th>
                     <th class="text-center">매니지먼트</th>
@@ -102,6 +106,21 @@
                         <span class="badge bg-warning-subtle text-warning border border-warning-subtle fw-bold px-2.5 py-1.5">
                             {{ "{:,}".format(m.monthly_fee or 0) }}원
                         </span>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" value="{{ m.payment_day or '' }}" min="1" max="31" placeholder="-" onchange="updateMemberField({{ m.id }}, 'payment_day', this.value)">
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="updateMemberField({{ m.id }}, 'payment_status', this.value)">
+                            <option value="unpaid" {% if m.payment_status == 'unpaid' or not m.payment_status %}selected{% endif %}>미납</option>
+                            <option value="paid" {% if m.payment_status == 'paid' %}selected{% endif %}>납부 완료</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="{{ m.registration_source or '' }}" placeholder="-" onchange="updateMemberField({{ m.id }}, 'registration_source', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="{{ m.exercise_purpose or '' }}" placeholder="-" onchange="updateMemberField({{ m.id }}, 'exercise_purpose', this.value)">
                     </td>
                     <td>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1.5">
@@ -187,6 +206,32 @@
             } else {
                 row.style.display = 'none';
             }
+        });
+    }
+
+    // 회원 필드 업데이트 함수
+    function updateMemberField(memberId, field, value) {
+        fetch(`/members/${memberId}/update_field`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                field: field,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('업데이트 성공');
+            } else {
+                alert('업데이트 실패: ' + (data.error || '알 수 없는 오류'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('업데이트 중 오류가 발생했습니다.');
         });
     }
 </script>

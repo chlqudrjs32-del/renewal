@@ -248,6 +248,34 @@ def delete_member_page(member_id):
     delete_member(member_id)
     return redirect(url_for('members'))
 
+@app.route('/members/<int:member_id>/update_field', methods=['POST'])
+def update_member_field(member_id):
+    """회원 특정 필드 업데이트 (인라인 편집용)"""
+    try:
+        data = request.get_json()
+        field = data.get('field')
+        value = data.get('value')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 허용된 필드만 업데이트
+        allowed_fields = ['payment_day', 'payment_status', 'registration_source', 'exercise_purpose']
+        if field not in allowed_fields:
+            return jsonify({'success': False, 'error': '허용되지 않은 필드입니다'}), 400
+        
+        # payment_day의 경우 숫자로 변환
+        if field == 'payment_day':
+            value = int(value) if value else None
+        
+        cursor.execute(f'UPDATE members SET {field} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (value, member_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/attendance')
 def attendance():
     """출석 타임라인 테이블 뷰 (주말 토, 일 완벽 제거)"""
