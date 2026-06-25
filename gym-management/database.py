@@ -110,22 +110,6 @@ def init_database():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-
-    # 관비 납부 테이블
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS fee_payment (
-            id {id_column},
-            member_id INTEGER NOT NULL,
-            payment_year INTEGER NOT NULL,
-            payment_month INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            payment_date TEXT,
-            status TEXT DEFAULT 'unpaid',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (member_id) REFERENCES members(id)
-        )
-    ''')
     
     if USE_POSTGRES:
         cursor.execute('''
@@ -519,7 +503,6 @@ def delete_member(member_id):
         
         # 관련 데이터 먼저 삭제 (외래 키 제약 조건)
         cursor.execute('DELETE FROM attendance WHERE member_id = ?', (member_id,))
-        cursor.execute('DELETE FROM fee_payment WHERE member_id = ?', (member_id,))
         
         # 회원 삭제
         cursor.execute('DELETE FROM members WHERE id = ?', (member_id,))
