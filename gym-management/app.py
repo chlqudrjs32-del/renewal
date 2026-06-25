@@ -11,8 +11,7 @@ from database import (
     get_all_schedules, get_schedules_by_month, get_schedules_by_date, get_schedule_by_id,
     add_schedule, update_schedule, delete_schedule, get_database_status, get_expired_members, get_expired_members_count,
     get_all_workout_programs, get_workout_program_by_id, get_workout_program_by_attendance,
-    add_workout_program, update_workout_program, delete_workout_program,
-    get_fee_payments_by_month, get_fee_payment_by_member_month, create_fee_payment, mark_fee_as_paid, mark_fee_as_unpaid, extend_member_expiry, get_db_connection
+    add_workout_program, update_workout_program, delete_workout_program, get_db_connection
 )
 from config import Config
 
@@ -164,6 +163,8 @@ def add_member_page():
         monthly_fee = int(request.form.get('monthly_fee', 0)) if request.form.get('monthly_fee') else 0
         registration_source = request.form.get('registration_source')
         exercise_purpose = request.form.get('exercise_purpose')
+        payment_day = int(request.form.get('payment_day')) if request.form.get('payment_day') else None
+        payment_status = request.form.get('payment_status', 'unpaid')
         
         # 기타 직접 입력 처리
         if registration_source == '기타':
@@ -171,7 +172,7 @@ def add_member_page():
         if exercise_purpose == '기타':
             exercise_purpose = request.form.get('exercise_purpose_other')
         
-        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee, registration_source, exercise_purpose)
+        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee, registration_source, exercise_purpose, payment_day, payment_status)
         return redirect(url_for('members', branch=branch))
     
     return render_template('add_member.html', branches=BRANCHES)
@@ -236,6 +237,8 @@ def edit_member(member_id):
         monthly_fee = int(request.form.get('monthly_fee', 0)) if request.form.get('monthly_fee') else 0
         registration_source = request.form.get('registration_source')
         exercise_purpose = request.form.get('exercise_purpose')
+        payment_day = int(request.form.get('payment_day')) if request.form.get('payment_day') else None
+        payment_status = request.form.get('payment_status')
         
         # 기타 직접 입력 처리
         if registration_source == '기타':
@@ -243,7 +246,7 @@ def edit_member(member_id):
         if exercise_purpose == '기타':
             exercise_purpose = request.form.get('exercise_purpose_other')
         
-        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose)
+        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose, payment_day, payment_status)
         return redirect(url_for('member_detail', member_id=member_id))
     
     phone_middle, phone_last = split_phone(member['phone'])
@@ -486,104 +489,6 @@ def edit_workout_program_page(program_id):
 def delete_workout_program_page(program_id):
     delete_workout_program(program_id)
     return redirect(url_for('workout_programs'))
-
-# ============= 관비 납부 관리 =============
-
-@app.route('/fee_management')
-def fee_management():
-    year = int(request.args.get('year', datetime.now().year))
-    month = int(request.args.get('month', datetime.now().month))
-    branch = request.args.get('branch', 'all')
-    status = request.args.get('status', 'all')
-    
-    branch_filter = branch if branch in BRANCHES else None
-    status_filter = status if status in ['paid', 'unpaid'] else None
-    
-    members = get_fee_payments_by_month(year, month, status_filter, branch_filter)
-    
-    # 통계 계산
-    total_count = len(members)
-    paid_count = len([m for m in members if m['payment_status'] == 'paid'])
-    unpaid_count = len([m for m in members if m['payment_status'] != 'paid'])
-    
-    return render_template('fee_management.html',
-                           members=members,
-                           current_year=year,
-                           current_month=month,
-                           current_branch=branch,
-                           current_status=status,
-                           branches=BRANCHES,
-                           total_count=total_count,
-                           paid_count=paid_count,
-                           unpaid_count=unpaid_count)
-
-@app.route('/fee_management/generate')
-def generate_fee_payments():
-    year = int(request.args.get('year', datetime.now().year))
-    month = int(request.args.get('month', datetime.now().month))
-    
-    # 모든 활성 회원에 대해 납부 대상 생성
-    active_members = get_members_by_status('active', None, None)
-    for member in active_members:
-        amount = member.get('monthly_fee', 0) or 0
-        if amount > 0:
-            create_fee_payment(member['id'], year, month, amount)
-    
-    return redirect(url_for('fee_management', year=year, month=month))
-
-@app.route('/fee_management/<int:member_id>/paid', methods=['POST'])
-def mark_fee_paid(member_id):
-    year = int(request.form.get('year', datetime.now().year))
-    month = int(request.form.get('month', datetime.now().month))
-    extend_months = int(request.form.get('extend_months', 3))
-    payment_amount = int(request.form.get('payment_amount', 0)) if request.form.get('payment_amount') else 0
-    
-    # 납부 레코드 확인 및 생성
-    payment = get_fee_payment_by_member_month(member_id, year, month)
-    if not payment:
-        member = get_member_by_id(member_id)
-        amount = payment_amount if payment_amount > 0 else (member.get('monthly_fee', 0) or 0)
-        payment_id = create_fee_payment(member_id, year, month, amount)
-    else:
-        payment_id = payment['id']
-    
-    # 결제 금액 업데이트 (입력된 금액이 있으면 해당 금액으로)
-    if payment_id:
-        if payment_amount > 0:
-            mark_fee_as_paid(payment_id, amount=payment_amount)
-        else:
-            mark_fee_as_paid(payment_id)
-        
-        # 회원의 monthly_fee 업데이트 (입력된 금액이 있으면 해당 금액으로)
-        if payment_amount > 0:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('UPDATE members SET monthly_fee = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
-                         (payment_amount, member_id))
-            conn.commit()
-            conn.close()
-        
-        # 회원권 만료일 연장 (결제 날짜 기준)
-        payment_date = datetime.now().strftime('%Y-%m-%d')
-        extend_member_expiry(member_id, extend_months, payment_date)
-    
-    branch = request.form.get('branch', 'all')
-    status = request.form.get('status', 'all')
-    return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
-
-@app.route('/fee_management/<int:member_id>/unpaid', methods=['POST'])
-def mark_fee_unpaid(member_id):
-    year = int(request.form.get('year', datetime.now().year))
-    month = int(request.form.get('month', datetime.now().month))
-    
-    # 납부 레코드 확인
-    payment = get_fee_payment_by_member_month(member_id, year, month)
-    if payment:
-        mark_fee_as_unpaid(payment['id'])
-    
-    branch = request.form.get('branch', 'all')
-    status = request.form.get('status', 'all')
-    return redirect(url_for('fee_management', year=year, month=month, branch=branch, status=status))
 
 @app.errorhandler(404)
 def not_found_error(error):

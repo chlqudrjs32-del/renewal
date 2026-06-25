@@ -105,6 +105,19 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-check me-1"></i> 관비 납부일</label>
+                <input type="number" name="payment_day" class="form-control form-control-lg rounded-3 border-2" placeholder="매월 납부일 (예: 4)" min="1" max="31" style="font-size: 16px;">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-check-circle me-1"></i> 납부 여부</label>
+                <select name="payment_status" class="form-select form-select-lg rounded-3 border-2" style="font-size: 16px;">
+                    <option value="unpaid" selected>미납</option>
+                    <option value="paid">납부 완료</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-range me-1"></i> 회원권 시작일</label>
                 <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" required style="font-size: 16px;">
             </div>

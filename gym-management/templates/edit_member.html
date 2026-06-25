@@ -105,6 +105,19 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-calendar-check me-1"></i> 관비 납부일</label>
+                <input type="number" name="payment_day" class="form-control form-control-lg rounded-3 border-2" placeholder="매월 납부일 (예: 4)" min="1" max="31" value="{{ member.payment_day or '' }}">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-check-circle me-1"></i> 납부 여부</label>
+                <select name="payment_status" class="form-select form-select-lg rounded-3 border-2">
+                    <option value="unpaid" {% if member.payment_status == 'unpaid' or not member.payment_status %}selected{% endif %}>미납</option>
+                    <option value="paid" {% if member.payment_status == 'paid' %}selected{% endif %}>납부 완료</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2">회원권 시작일</label>
                 <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.membership_start_date }}" required>
             </div>
