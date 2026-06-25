@@ -139,7 +139,7 @@ def init_database():
     if 'payment_day' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN payment_day INTEGER')
     if 'payment_status' not in member_columns:
-        cursor.execute('ALTER TABLE members ADD COLUMN payment_status TEXT DEFAULT "unpaid"')
+        cursor.execute("ALTER TABLE members ADD COLUMN payment_status TEXT DEFAULT 'unpaid'")
 
     # 운동 프로그램 초기 데이터 추가 (테이블이 비어있을 때만)
     try:
