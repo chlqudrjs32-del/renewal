@@ -75,6 +75,33 @@
             </div>
 
             <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-signpost me-1"></i> 등록 경로</label>
+                <select name="registration_source" class="form-select form-select-lg rounded-3 border-2">
+                    <option value="">선택하세요</option>
+                    <option value="지인소개" {% if member.registration_source == '지인소개' %}selected{% endif %}>지인 소개</option>
+                    <option value="인터넷검색" {% if member.registration_source == '인터넷검색' %}selected{% endif %}>인터넷 검색</option>
+                    <option value="SNS" {% if member.registration_source == 'SNS' %}selected{% endif %}>SNS</option>
+                    <option value="현간판" {% if member.registration_source == '현간판' %}selected{% endif %}>현간판</option>
+                    <option value="전단지" {% if member.registration_source == '전단지' %}selected{% endif %}>전단지</option>
+                    <option value="기타" {% if member.registration_source == '기타' %}selected{% endif %}>기타</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2"><i class="bi bi-bullseye me-1"></i> 운동 목적</label>
+                <select name="exercise_purpose" class="form-select form-select-lg rounded-3 border-2">
+                    <option value="">선택하세요</option>
+                    <option value="체력증진" {% if member.exercise_purpose == '체력증진' %}selected{% endif %}>체력 증진</option>
+                    <option value="다이어트" {% if member.exercise_purpose == '다이어트' %}selected{% endif %}>다이어트</option>
+                    <option value="근력증가" {% if member.exercise_purpose == '근력증가' %}selected{% endif %}>근력 증가</option>
+                    <option value="스트레스해소" {% if member.exercise_purpose == '스트레스해소' %}selected{% endif %}>스트레스 해소</option>
+                    <option value="건강관리" {% if member.exercise_purpose == '건강관리' %}selected{% endif %}>건강 관리</option>
+                    <option value="재활운동" {% if member.exercise_purpose == '재활운동' %}selected{% endif %}>재활 운동</option>
+                    <option value="기타" {% if member.exercise_purpose == '기타' %}selected{% endif %}>기타</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
                 <label class="form-label fw-bold text-secondary mb-2">회원권 시작일</label>
                 <input type="date" name="membership_start_date" class="form-control form-control-lg rounded-3 border-2" value="{{ member.membership_start_date }}" required>
             </div>

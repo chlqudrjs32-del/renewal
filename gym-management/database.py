@@ -148,6 +148,10 @@ def init_database():
         cursor.execute('ALTER TABLE members ADD COLUMN suspension_end_date TEXT')
     if 'monthly_fee' not in member_columns:
         cursor.execute('ALTER TABLE members ADD COLUMN monthly_fee INTEGER DEFAULT 0')
+    if 'registration_source' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN registration_source TEXT')
+    if 'exercise_purpose' not in member_columns:
+        cursor.execute('ALTER TABLE members ADD COLUMN exercise_purpose TEXT')
 
     # 운동 프로그램 초기 데이터 추가 (테이블이 비어있을 때만)
     try:
@@ -450,7 +454,7 @@ def calculate_expiry_date(start_date_str, membership_type):
     else:
         return (start_datetime + timedelta(days=365)).strftime('%Y-%m-%d')
 
-def add_member(name, phone, birth_date, gender, membership_type, memo, status='active', membership_start_date=None, parent_phone=None, branch='태평동', monthly_fee=0):
+def add_member(name, phone, birth_date, gender, membership_type, memo, status='active', membership_start_date=None, parent_phone=None, branch='태평동', monthly_fee=0, registration_source=None, exercise_purpose=None):
     today = datetime.now().strftime('%Y-%m-%d')
     if not membership_start_date:
         membership_start_date = today
@@ -461,18 +465,18 @@ def add_member(name, phone, birth_date, gender, membership_type, memo, status='a
     cursor = conn.cursor()
     query = '''
         INSERT INTO members (name, phone, parent_phone, birth_date, gender, registration_date, 
-                           branch, membership_type, membership_start_date, expiry_date, memo, status, monthly_fee)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           branch, membership_type, membership_start_date, expiry_date, memo, status, monthly_fee, registration_source, exercise_purpose)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     '''
     if USE_POSTGRES:
         query += ' RETURNING id'
-    cursor.execute(query, (name, phone, parent_phone, birth_date, gender, today, branch, membership_type, membership_start_date, expiry_date, memo, status, monthly_fee))
+    cursor.execute(query, (name, phone, parent_phone, birth_date, gender, today, branch, membership_type, membership_start_date, expiry_date, memo, status, monthly_fee, registration_source, exercise_purpose))
     member_id = cursor.fetchone()['id'] if USE_POSTGRES else cursor.lastrowid
     conn.commit()
     conn.close()
     return member_id
 
-def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동', suspension_start_date=None, suspension_end_date=None, monthly_fee=0):
+def update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone=None, branch='태평동', suspension_start_date=None, suspension_end_date=None, monthly_fee=0, registration_source=None, exercise_purpose=None):
     expiry_date = calculate_expiry_date(membership_start_date, int(membership_type))
     
     # 수련정지 기간을 제외한 만료일 계산
@@ -497,9 +501,9 @@ def update_member(member_id, name, phone, birth_date, gender, membership_type, m
         UPDATE members 
         SET name = ?, phone = ?, parent_phone = ?, birth_date = ?, gender = ?, branch = ?, membership_type = ?, 
             membership_start_date = ?, expiry_date = ?, memo = ?, status = ?, suspension_start_date = ?, 
-            suspension_end_date = ?, monthly_fee = ?, updated_at = CURRENT_TIMESTAMP
+            suspension_end_date = ?, monthly_fee = ?, registration_source = ?, exercise_purpose = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    ''', (name, phone, parent_phone, birth_date, gender, branch, membership_type, membership_start_date, expiry_date, memo, status, suspension_start_date, suspension_end_date, monthly_fee, member_id))
+    ''', (name, phone, parent_phone, birth_date, gender, branch, membership_type, membership_start_date, expiry_date, memo, status, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose, member_id))
     conn.commit()
     conn.close()
 

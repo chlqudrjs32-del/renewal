@@ -162,8 +162,10 @@ def add_member_page():
         memo = request.form.get('memo')
         status = request.form.get('status', 'active')
         monthly_fee = int(request.form.get('monthly_fee', 0)) if request.form.get('monthly_fee') else 0
+        registration_source = request.form.get('registration_source')
+        exercise_purpose = request.form.get('exercise_purpose')
         
-        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee)
+        add_member(name, phone, birth_date, gender, membership_type, memo, status, membership_start_date, parent_phone, branch, monthly_fee, registration_source, exercise_purpose)
         return redirect(url_for('members', branch=branch))
     
     return render_template('add_member.html', branches=BRANCHES)
@@ -226,8 +228,10 @@ def edit_member(member_id):
             suspension_end_date = None
         
         monthly_fee = int(request.form.get('monthly_fee', 0)) if request.form.get('monthly_fee') else 0
+        registration_source = request.form.get('registration_source')
+        exercise_purpose = request.form.get('exercise_purpose')
         
-        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee)
+        update_member(member_id, name, phone, birth_date, gender, membership_type, membership_start_date, memo, status, parent_phone, branch, suspension_start_date, suspension_end_date, monthly_fee, registration_source, exercise_purpose)
         return redirect(url_for('member_detail', member_id=member_id))
     
     phone_middle, phone_last = split_phone(member['phone'])
