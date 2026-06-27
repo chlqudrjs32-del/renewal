@@ -96,7 +96,7 @@ def get_calendar_data(year, month, exclude_weekend=False):
 def index():
     branch = request.args.get('branch', 'all')
     branch_filter = branch if branch in BRANCHES else None
-    update_expired_members()
+    # update_expired_members()  # 자동 상태 변경 비활성화 - 수동으로 변경하도록 수정
     stats = {
         'total_members': get_member_count(branch_filter),
         'today_attendance': get_today_attendance_count(branch_filter),
